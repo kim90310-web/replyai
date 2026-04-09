@@ -1,0 +1,2928 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ReplyAI — Threads 智慧回覆平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+/* ============================================================
+   RESET & BASE
+============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#0a0a0a;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+ul{list-style:none}
+
+/* ============================================================
+   DESIGN TOKENS
+============================================================ */
+:root{
+  --cyan:#00d4f5;
+  --cyan-light:rgba(0,212,245,.14);
+  --cyan-glow:rgba(0,212,245,.28);
+  --purple:#7c3aed;
+  --purple-light:rgba(124,58,237,.12);
+  --pink:#ec4899;
+
+  /* dark (hero/footer) */
+  --d-bg:#060b12;
+  --d-bg2:#0b1220;
+  --d-card:rgba(255,255,255,.05);
+  --d-border:rgba(255,255,255,.08);
+  --d-text:#fff;
+  --d-muted:rgba(255,255,255,.55);
+
+  /* light (content) */
+  --l-bg:#fff;
+  --l-bg2:#f7f8fa;
+  --l-bg3:#f0f2f5;
+  --l-text:#0a0a0a;
+  --l-muted:#6b7280;
+  --l-border:#e5e7eb;
+
+  --radius-sm:8px;
+  --radius:12px;
+  --radius-lg:16px;
+  --radius-xl:24px;
+  --radius-full:9999px;
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow:0 4px 16px rgba(0,0,0,.09),0 1px 4px rgba(0,0,0,.06);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.13),0 4px 12px rgba(0,0,0,.07);
+  --shadow-cyan:0 0 40px rgba(0,212,245,.18);
+
+  --nav-h:68px;
+  --container:1180px;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+
+/* ============================================================
+   UTILITIES
+============================================================ */
+.container{max-width:var(--container);margin:0 auto;padding:0 24px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* ============================================================
+   BUTTONS
+============================================================ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:var(--radius-full);font-size:15px;font-weight:600;transition:all .25s var(--ease);position:relative;overflow:hidden;white-space:nowrap}
+.btn-dark{background:#0a0a0a;color:#fff}
+.btn-dark:hover{background:#1a1a2e;box-shadow:0 4px 20px rgba(0,0,0,.35);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:#0a0a0a;border:1.5px solid var(--l-border)}
+.btn-outline:hover{border-color:#0a0a0a;background:var(--l-bg2);transform:translateY(-1px)}
+.btn-cyan{background:var(--cyan);color:#000;font-weight:700}
+.btn-cyan:hover{box-shadow:0 4px 24px var(--cyan-glow);transform:translateY(-2px)}
+.btn-ghost-dark{background:rgba(255,255,255,.07);color:#fff;border:1.5px solid rgba(255,255,255,.1)}
+.btn-ghost-dark:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.2)}
+/* THREADS SCAN TAB */
+.scan-post-card{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-xl);padding:20px;transition:box-shadow .2s,border-color .2s}
+.scan-post-card:hover{box-shadow:var(--shadow-sm);border-color:rgba(0,212,245,.3)}
+.scan-post-card.selected{border-color:var(--cyan);background:rgba(0,212,245,.02)}
+.scan-post-card.replied{border-color:#10b981;background:rgba(16,185,129,.03);opacity:.75}
+.scan-post-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.scan-post-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.scan-post-meta{flex:1}
+.scan-post-username{font-size:14px;font-weight:700;color:var(--l-text)}
+.scan-post-time{font-size:12px;color:var(--l-muted)}
+.scan-post-platform-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:#f3f4f6;color:var(--l-muted)}
+.scan-post-content{font-size:14px;color:#374151;line-height:1.6;margin-bottom:12px}
+.scan-post-keyword-match{background:rgba(0,212,245,.12);color:var(--cyan);font-weight:700;border-radius:3px;padding:0 3px}
+.scan-post-stats{display:flex;gap:16px;font-size:12px;color:var(--l-muted);margin-bottom:14px}
+.scan-post-reply-area{background:var(--l-bg2);border-radius:var(--radius);padding:14px}
+.scan-post-reply-label{font-size:11px;font-weight:700;color:var(--l-muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px}
+.scan-post-reply-text{font-size:13px;color:var(--l-text);line-height:1.6;margin-bottom:10px;white-space:pre-wrap}
+.scan-post-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.scan-replied-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#10b981;background:rgba(16,185,129,.1);border-radius:20px;padding:4px 12px}
+.btn-ghost{background:transparent;color:var(--l-muted);border:1.5px solid var(--l-border)}
+.btn-ghost:hover{background:var(--l-bg2);color:var(--l-text);border-color:var(--l-border)}
+.btn-sm{padding:9px 18px;font-size:14px}
+.btn-lg{padding:16px 32px;font-size:16px}
+.btn.loading{pointer-events:none;opacity:.7}
+.btn.loading .btn-label{opacity:0}
+.btn.loading::after{content:'';position:absolute;width:18px;height:18px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============================================================
+   BADGES
+============================================================ */
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--radius-full);font-size:12px;font-weight:600;letter-spacing:.03em}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge-cyan{background:var(--cyan-light);color:var(--cyan);border:1px solid rgba(0,212,245,.22)}
+.badge-purple{background:var(--purple-light);color:var(--purple);border:1px solid rgba(124,58,237,.2)}
+.badge-success{background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.2)}
+.badge-warn{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.2)}
+
+/* ============================================================
+   SCROLL REVEAL
+============================================================ */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .65s var(--ease),transform .65s var(--ease)}
+.reveal.visible{opacity:1;transform:none}
+.reveal-up{opacity:0;transform:translateY(40px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal-up.visible{opacity:1;transform:none}
+.stagger>*{opacity:0;transform:translateY(20px);transition:opacity .55s var(--ease),transform .55s var(--ease)}
+.stagger.visible>*:nth-child(1){opacity:1;transform:none;transition-delay:0s}
+.stagger.visible>*:nth-child(2){opacity:1;transform:none;transition-delay:.08s}
+.stagger.visible>*:nth-child(3){opacity:1;transform:none;transition-delay:.16s}
+.stagger.visible>*:nth-child(4){opacity:1;transform:none;transition-delay:.24s}
+.stagger.visible>*:nth-child(5){opacity:1;transform:none;transition-delay:.32s}
+.stagger.visible>*:nth-child(6){opacity:1;transform:none;transition-delay:.40s}
+
+/* ============================================================
+   NAVBAR
+============================================================ */
+#navbar{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--nav-h);transition:background .3s var(--ease),border-color .3s,box-shadow .3s}
+#navbar .nav-wrap{max-width:var(--container);margin:0 auto;padding:0 24px;height:100%;display:flex;align-items:center;justify-content:space-between;gap:32px}
+.nav-logo{display:flex;align-items:center;gap:9px}
+.nav-logo-mark{width:30px;height:30px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:8px;display:grid;place-items:center;flex-shrink:0}
+.nav-logo-mark svg{width:16px;height:16px}
+.nav-logo-text{font-size:19px;font-weight:800;letter-spacing:-.03em;color:var(--d-text)}
+.nav-logo-text span{color:var(--cyan)}
+.nav-links{display:flex;align-items:center;gap:2px}
+.nav-links a{padding:7px 14px;border-radius:var(--radius);font-size:14px;font-weight:500;color:var(--d-muted);transition:color .2s,background .2s}
+.nav-links a:hover{color:var(--d-text);background:rgba(255,255,255,.07)}
+.nav-cta{display:flex;align-items:center;gap:10px}
+#navbar.light .nav-logo-text{color:var(--l-text)}
+#navbar.light .nav-links a{color:var(--l-muted)}
+#navbar.light .nav-links a:hover{color:var(--l-text);background:var(--l-bg2)}
+#navbar.scrolled{background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--l-border);box-shadow:var(--shadow-sm)}
+#navbar.scrolled .nav-logo-text{color:var(--l-text)}
+#navbar.scrolled .nav-links a{color:var(--l-muted)}
+#navbar.scrolled .nav-links a:hover{color:var(--l-text)}
+#navbar.scrolled .btn-ghost-dark{background:var(--l-bg2);color:var(--l-text);border-color:var(--l-border)}
+.nav-hamburger{display:none;background:none;border:none;padding:8px;cursor:pointer}
+.nav-hamburger span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;margin:4px 0;transition:all .25s}
+
+/* ============================================================
+   PAGES
+============================================================ */
+.page{display:none}
+.page.active{display:block}
+
+/* ============================================================
+   LANDING: HERO
+============================================================ */
+#hero{min-height:100vh;background:var(--d-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(var(--nav-h) + 60px) 24px 100px;position:relative;overflow:hidden}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,245,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,245,.03) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 70% 60% at 50% 40%,black 30%,transparent 100%);pointer-events:none}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none}
+.hero-orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(0,100,180,.22) 0%,transparent 70%);top:-150px;left:-80px}
+.hero-orb-2{width:500px;height:500px;background:radial-gradient(circle,rgba(0,180,140,.14) 0%,transparent 70%);bottom:-100px;right:-60px}
+.hero-orb-3{width:300px;height:300px;background:radial-gradient(circle,rgba(124,58,237,.12) 0%,transparent 70%);top:30%;left:60%}
+.hero-content{position:relative;z-index:1;max-width:800px}
+.hero-badge{margin-bottom:28px}
+.hero-h1{font-size:clamp(52px,8vw,84px);font-weight:800;color:#fff;letter-spacing:-.04em;line-height:1.08;margin-bottom:24px}
+.hero-h1 em{font-style:normal;color:var(--cyan)}
+.hero-sub{font-size:18px;color:var(--d-muted);max-width:500px;margin:0 auto 40px;line-height:1.65;font-weight:400}
+.hero-actions{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:72px}
+/* gradient fade at bottom of hero */
+#hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(to bottom,transparent,#fff);pointer-events:none;z-index:2}
+
+/* ============================================================
+   LANDING: MARQUEE
+============================================================ */
+#marquee{background:#fff;padding:0 0 64px;overflow:hidden}
+.marquee-label{text-align:center;font-size:13px;font-weight:600;color:var(--l-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:28px}
+.marquee-track{display:flex;gap:0;overflow:hidden;mask-image:linear-gradient(90deg,transparent,black 15%,black 85%,transparent)}
+.marquee-list{display:flex;gap:48px;align-items:center;padding:0 24px;animation:marquee 28s linear infinite;white-space:nowrap;flex-shrink:0}
+.marquee-item{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:#9ca3af;letter-spacing:-.01em;transition:color .2s}
+.marquee-item:hover{color:#374151}
+.marquee-icon{width:20px;height:20px;flex-shrink:0}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ============================================================
+   LANDING: STATS
+============================================================ */
+#stats{background:#fff;padding:0 0 96px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--l-border);border:1px solid var(--l-border);border-radius:var(--radius-lg);overflow:hidden}
+.stat-cell{background:#fff;padding:32px 24px;text-align:center}
+.stat-value{font-size:36px;font-weight:800;color:var(--l-text);letter-spacing:-.03em;line-height:1;margin-bottom:6px}
+.stat-value b{color:var(--cyan)}
+.stat-label{font-size:13px;color:var(--l-muted);font-weight:500}
+
+/* ============================================================
+   LANDING: PROBLEM
+============================================================ */
+#problem{background:var(--l-bg2);padding:96px 0}
+.problem-inner{max-width:760px;margin:0 auto;text-align:center}
+.problem-h2{font-size:clamp(32px,4.5vw,52px);font-weight:800;color:var(--l-text);letter-spacing:-.03em;line-height:1.15;margin-bottom:24px}
+.problem-h2 em{font-style:normal;color:var(--purple)}
+.problem-p{font-size:17px;color:var(--l-muted);line-height:1.7;max-width:580px;margin:0 auto}
+
+/* ============================================================
+   LANDING: FEATURES (BENTO GRID)
+============================================================ */
+#features{background:#fff;padding:96px 0}
+.features-header{text-align:center;margin-bottom:56px}
+.section-tag{font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--purple);margin-bottom:14px}
+.section-h2{font-size:clamp(30px,4vw,44px);font-weight:800;letter-spacing:-.03em;color:var(--l-text);margin-bottom:14px}
+.section-h2 em{font-style:normal;color:var(--cyan)}
+.section-sub{font-size:16px;color:var(--l-muted);max-width:480px;margin:0 auto}
+
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.bento-card{background:var(--d-bg2);border:1px solid var(--d-border);border-radius:var(--radius-lg);overflow:hidden;transition:transform .3s var(--ease),box-shadow .3s,border-color .3s;position:relative}
+.bento-card:hover{transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,.25),0 0 0 1px rgba(0,212,245,.15);border-color:rgba(0,212,245,.18)}
+.bento-card-inner{padding:28px;display:flex;flex-direction:column;gap:16px;height:100%}
+.bento-card-tag{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--cyan);margin-bottom:4px}
+.bento-card-title{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1.25}
+.bento-card-desc{font-size:14px;color:var(--d-muted);line-height:1.6;flex:1}
+
+/* bento grid areas */
+.bc-1{grid-column:span 7}
+.bc-2{grid-column:span 5}
+.bc-3{grid-column:span 5}
+.bc-4{grid-column:span 7}
+.bc-5{grid-column:span 4}
+.bc-6{grid-column:span 4}
+.bc-7{grid-column:span 4}
+
+/* UI Mockups inside cards */
+.mockup{background:rgba(0,0,0,.4);border-radius:var(--radius);border:1px solid rgba(255,255,255,.07);overflow:hidden;margin-top:4px}
+.mockup-bar{display:flex;align-items:center;gap:6px;padding:9px 12px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.06)}
+.mockup-dot{width:9px;height:9px;border-radius:50%}
+.mockup-dot-r{background:#ff5f56}
+.mockup-dot-y{background:#febc2e}
+.mockup-dot-g{background:#27c93f}
+.mockup-title-bar{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:4px;margin:0 12px}
+.mockup-body{padding:14px}
+
+/* Thread mockup */
+.thread-post{display:flex;gap:10px;margin-bottom:14px}
+.thread-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));flex-shrink:0;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
+.thread-content{}
+.thread-name{font-size:12px;font-weight:700;color:#fff;margin-bottom:3px}
+.thread-text{font-size:12px;color:var(--d-muted);line-height:1.5}
+.thread-reply{background:rgba(0,212,245,.08);border:1px solid rgba(0,212,245,.15);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px}
+.thread-reply-label{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--cyan);margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.thread-reply-text{font-size:12px;color:#fff;line-height:1.5}
+.thread-meta{font-size:10px;color:var(--d-muted);margin-top:5px;display:flex;align-items:center;gap:8px}
+.pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--cyan-glow)}50%{opacity:.7;box-shadow:0 0 0 5px transparent}}
+
+/* Search mockup */
+.search-input-mock{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:9px 12px;margin-bottom:12px}
+.search-input-mock span{font-size:12px;color:var(--d-muted);flex:1}
+.search-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:600;background:var(--cyan-light);color:var(--cyan);border:1px solid rgba(0,212,245,.2);margin:2px}
+.search-result-row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.search-result-row:last-child{border-bottom:none}
+.search-result-text{font-size:11px;color:var(--d-muted);line-height:1.5;flex:1}
+.search-result-icon{font-size:16px;flex-shrink:0}
+
+/* Analytics mockup */
+.analytics-row{display:flex;justify-content:space-between;align-items:flex-end;height:70px;gap:6px;margin-bottom:12px}
+.analytics-bar-wrap{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;align-items:center}
+.analytics-bar{width:100%;border-radius:4px 4px 0 0;transition:height .8s var(--ease)}
+.analytics-bar-a{background:linear-gradient(180deg,var(--cyan),rgba(0,212,245,.3))}
+.analytics-bar-b{background:linear-gradient(180deg,var(--purple),rgba(124,58,237,.3))}
+.analytics-bar-label{font-size:9px;color:var(--d-muted);font-weight:500}
+.analytics-stats{display:flex;gap:14px}
+.analytics-stat{background:rgba(255,255,255,.05);border-radius:var(--radius-sm);padding:8px 12px;flex:1}
+.analytics-stat-val{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.analytics-stat-lbl{font-size:10px;color:var(--d-muted);margin-top:2px}
+.analytics-stat-change{font-size:10px;color:#10b981;font-weight:600}
+
+/* Tone mockup */
+.tone-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.tone-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid transparent;background:rgba(255,255,255,.04);cursor:pointer;transition:all .2s}
+.tone-opt.active{background:var(--cyan-light);border-color:rgba(0,212,245,.25)}
+.tone-radio{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.2);flex-shrink:0}
+.tone-opt.active .tone-radio{border-color:var(--cyan);background:var(--cyan)}
+.tone-name{font-size:12px;font-weight:600;color:#fff}
+.tone-badge{margin-left:auto;font-size:10px;padding:2px 7px;border-radius:var(--radius-full);background:rgba(0,212,245,.1);color:var(--cyan)}
+.tone-preview{background:rgba(0,212,245,.07);border:1px solid rgba(0,212,245,.12);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--d-muted);line-height:1.5}
+
+/* ============================================================
+   LANDING: PRICING
+============================================================ */
+#pricing{background:var(--l-bg2);padding:96px 0}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.pricing-card{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-xl);padding:32px;transition:transform .3s var(--ease),box-shadow .3s;position:relative}
+.pricing-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.pricing-card.featured{border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,var(--cyan),var(--purple)) border-box}
+.pricing-card.featured:hover{box-shadow:0 12px 48px rgba(0,212,245,.15),0 4px 16px rgba(0,0,0,.08)}
+.pricing-pill{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;font-size:11px;font-weight:700;padding:5px 16px;border-radius:var(--radius-full);letter-spacing:.04em;white-space:nowrap}
+.pricing-tier{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--l-muted);margin-bottom:12px}
+.pricing-price{display:flex;align-items:baseline;gap:3px;margin-bottom:8px}
+.pricing-curr{font-size:18px;font-weight:700;color:var(--l-muted)}
+.pricing-amt{font-size:52px;font-weight:900;color:var(--l-text);letter-spacing:-.04em;line-height:1}
+.pricing-per{font-size:14px;color:var(--l-muted);align-self:flex-end;margin-bottom:6px}
+.pricing-desc{font-size:14px;color:var(--l-muted);margin-bottom:24px;line-height:1.55}
+.pricing-features{display:flex;flex-direction:column;gap:9px;margin-bottom:28px}
+.pricing-feature{display:flex;align-items:flex-start;gap:9px;font-size:14px;color:#374151}
+.pricing-feature-icon{width:18px;height:18px;border-radius:50%;background:rgba(0,212,245,.1);color:var(--cyan);display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.pricing-feature.muted .pricing-feature-icon{background:var(--l-bg3);color:var(--l-muted)}
+.pricing-feature.muted{color:var(--l-muted)}
+
+/* ============================================================
+   LANDING: FAQ
+============================================================ */
+#faq{background:#fff;padding:96px 0}
+.faq-max{max-width:720px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--l-border)}
+.faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;padding:20px 0;font-size:16px;font-weight:600;color:var(--l-text);background:none;text-align:left;gap:16px;cursor:pointer;transition:color .2s}
+.faq-q:hover{color:var(--cyan)}
+.faq-icon{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--l-border);display:grid;place-items:center;flex-shrink:0;font-size:16px;color:var(--l-muted);transition:transform .3s,border-color .2s}
+.faq-item.open .faq-icon{transform:rotate(45deg);border-color:var(--cyan);color:var(--cyan)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s var(--ease),padding .3s}
+.faq-a-inner{padding:0 0 20px;font-size:15px;color:var(--l-muted);line-height:1.7}
+.faq-item.open .faq-a{max-height:300px}
+
+/* ============================================================
+   LANDING: CTA FINAL
+============================================================ */
+#cta-final{background:var(--d-bg);padding:120px 0;position:relative;overflow:hidden;text-align:center}
+.cta-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+.cta-orb-1{width:400px;height:400px;background:radial-gradient(circle,rgba(0,100,180,.2),transparent 70%);top:-100px;left:10%}
+.cta-orb-2{width:350px;height:350px;background:radial-gradient(circle,rgba(124,58,237,.15),transparent 70%);bottom:-80px;right:10%}
+.cta-inner{position:relative;z-index:1}
+.cta-h2{font-size:clamp(36px,5vw,60px);font-weight:800;color:#fff;letter-spacing:-.04em;margin-bottom:18px}
+.cta-h2 em{font-style:normal;color:var(--cyan)}
+.cta-sub{font-size:17px;color:var(--d-muted);margin-bottom:40px}
+.cta-actions{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+
+/* ============================================================
+   LANDING: FOOTER
+============================================================ */
+footer{background:#07090f;border-top:1px solid rgba(255,255,255,.06);padding:64px 0 36px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+.footer-logo{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.footer-logo-mark{width:30px;height:30px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:8px;display:grid;place-items:center;font-size:15px}
+.footer-brand-name{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.03em}
+.footer-brand-name span{color:var(--cyan)}
+.footer-tagline{font-size:14px;color:var(--d-muted);line-height:1.65;margin-bottom:20px;max-width:260px}
+.footer-col-title{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:16px}
+.footer-links{display:flex;flex-direction:column;gap:9px}
+.footer-links a{font-size:14px;color:var(--d-muted);transition:color .2s}
+.footer-links a:hover{color:#fff}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:24px;display:flex;align-items:center;justify-content:space-between}
+.footer-copy{font-size:13px;color:rgba(255,255,255,.3)}
+
+/* ============================================================
+   LOGIN PAGE
+============================================================ */
+#page-login{min-height:100vh;background:var(--d-bg);align-items:center;justify-content:center;padding:24px}
+#page-login.active{display:flex}
+.login-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-xl);padding:40px;width:100%;max-width:420px;backdrop-filter:blur(20px)}
+.login-logo{display:flex;align-items:center;gap:9px;margin-bottom:32px;justify-content:center}
+.login-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:10px;display:grid;place-items:center;font-size:18px}
+.login-title{font-size:24px;font-weight:800;color:#fff;letter-spacing:-.03em;text-align:center;margin-bottom:8px}
+.login-sub{font-size:14px;color:var(--d-muted);text-align:center;margin-bottom:28px}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-label{font-size:13px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.01em}
+.form-input{width:100%;padding:12px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius);color:#fff;font-size:15px;font-family:inherit;transition:all .2s;outline:none}
+.form-input::placeholder{color:rgba(255,255,255,.25)}
+.form-input:focus{border-color:var(--cyan);background:rgba(0,212,245,.08);box-shadow:0 0 0 3px rgba(0,212,245,.12)}
+.login-divider{display:flex;align-items:center;gap:12px;margin:20px 0}
+.login-divider span{font-size:12px;color:var(--d-muted)}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+.login-forgot{font-size:13px;color:var(--cyan);margin-top:4px;display:block;text-align:right}
+.login-footer-text{font-size:13px;color:var(--d-muted);text-align:center;margin-top:20px}
+.login-footer-text a{color:var(--cyan)}
+.login-back{position:absolute;top:24px;left:24px;display:flex;align-items:center;gap:6px;font-size:14px;color:var(--d-muted);transition:color .2s}
+.login-back:hover{color:#fff}
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+#page-dashboard{min-height:100vh;background:var(--l-bg);flex-direction:column}
+#page-dashboard.active{display:flex}
+.dash-nav{height:64px;background:#fff;border-bottom:1px solid var(--l-border);display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:100;gap:16px}
+.dash-logo{display:flex;align-items:center;gap:8px}
+.dash-logo-mark{width:28px;height:28px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:7px;display:grid;place-items:center;font-size:13px}
+.dash-logo-text{font-size:16px;font-weight:800;letter-spacing:-.03em;color:var(--l-text)}
+.dash-logo-text span{color:var(--cyan)}
+.dash-nav-badge{margin-left:8px}
+.dash-user{margin-left:auto;display:flex;align-items:center;gap:12px}
+.dash-user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:grid;place-items:center;color:#fff;font-size:13px;font-weight:700}
+.dash-user-name{font-size:14px;font-weight:600;color:var(--l-text)}
+.dash-body{display:flex;flex:1}
+.dash-sidebar{width:220px;background:#fff;border-right:1px solid var(--l-border);padding:24px 12px;flex-shrink:0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.dash-sidebar-section{margin-bottom:28px}
+.dash-sidebar-label{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--l-muted);padding:0 10px;margin-bottom:6px}
+.dash-nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);font-size:14px;font-weight:500;color:var(--l-muted);cursor:pointer;transition:all .2s;margin-bottom:2px}
+.dash-nav-item:hover{background:var(--l-bg2);color:var(--l-text)}
+.dash-nav-item.active{background:var(--cyan-light);color:var(--cyan);font-weight:600}
+.dash-nav-item-icon{font-size:16px;flex-shrink:0}
+.dash-main{flex:1;padding:32px;min-width:0;overflow-y:auto}
+.dash-tab{display:none}
+.dash-tab.active{display:block}
+
+/* Dashboard components */
+.dash-page-title{font-size:24px;font-weight:800;letter-spacing:-.03em;color:var(--l-text);margin-bottom:6px}
+.dash-page-sub{font-size:14px;color:var(--l-muted);margin-bottom:32px}
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.metric-card{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-lg);padding:20px;transition:box-shadow .25s,transform .25s}
+.metric-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.metric-card-label{font-size:12px;font-weight:600;color:var(--l-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.metric-card-value{font-size:30px;font-weight:800;color:var(--l-text);letter-spacing:-.03em;margin-bottom:6px}
+.metric-card-change{font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--radius-full)}
+.change-up{background:rgba(16,185,129,.1);color:#10b981}
+.change-down{background:rgba(239,68,68,.1);color:#ef4444}
+.change-neutral{background:var(--l-bg2);color:var(--l-muted)}
+
+/* Referral link panel */
+.ref-panel{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-lg);padding:28px;margin-bottom:24px}
+.ref-panel-title{font-size:17px;font-weight:700;color:var(--l-text);margin-bottom:6px}
+.ref-panel-sub{font-size:14px;color:var(--l-muted);margin-bottom:20px}
+.ref-link-box{display:flex;gap:10px;margin-bottom:20px}
+.ref-link-input{flex:1;padding:12px 16px;background:var(--l-bg2);border:1px solid var(--l-border);border-radius:var(--radius);font-size:14px;color:var(--l-text);font-family:inherit;outline:none;transition:border-color .2s}
+.ref-link-input:focus{border-color:var(--cyan)}
+.cookie-status-row{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:var(--radius);font-size:13px;font-weight:500;color:#10b981}
+.cookie-status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;animation:pulse 2s infinite;flex-shrink:0}
+
+/* How it works steps */
+.how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.how-step{background:var(--l-bg2);border-radius:var(--radius);padding:20px}
+.how-step-num{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;font-size:14px;font-weight:700;display:grid;place-items:center;margin-bottom:12px}
+.how-step-title{font-size:15px;font-weight:700;color:var(--l-text);margin-bottom:4px}
+.how-step-desc{font-size:13px;color:var(--l-muted);line-height:1.55}
+
+/* Events table */
+.table-panel{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px}
+.table-header{padding:20px 24px;border-bottom:1px solid var(--l-border);display:flex;align-items:center;justify-content:space-between}
+.table-title{font-size:16px;font-weight:700;color:var(--l-text)}
+table{width:100%;border-collapse:collapse}
+th{padding:11px 20px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--l-muted);background:var(--l-bg2);border-bottom:1px solid var(--l-border)}
+td{padding:14px 20px;font-size:14px;color:var(--l-text);border-bottom:1px solid var(--l-border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--l-bg2)}
+
+/* Chart */
+.chart-panel{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.chart-title{font-size:16px;font-weight:700;color:var(--l-text)}
+.chart-legend{display:flex;gap:16px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--l-muted)}
+.legend-dot{width:8px;height:8px;border-radius:2px}
+.chart-bars{display:flex;align-items:flex-end;gap:8px;height:160px}
+.chart-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.chart-bar-pair{display:flex;gap:3px;align-items:flex-end;height:140px;width:100%}
+.chart-bar{flex:1;border-radius:3px 3px 0 0;transition:opacity .2s}
+.chart-bar:hover{opacity:.8}
+.chart-bar-cyan{background:linear-gradient(180deg,var(--cyan),rgba(0,212,245,.2))}
+.chart-bar-purple{background:linear-gradient(180deg,var(--purple),rgba(124,58,237,.2))}
+.chart-bar-label{font-size:10px;color:var(--l-muted)}
+
+/* Commission */
+.commission-breakdown{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.comm-row{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.comm-label{font-size:14px;color:var(--l-text)}
+.comm-sub{font-size:12px;color:var(--l-muted);margin-top:2px}
+.comm-val{font-size:18px;font-weight:800;color:var(--l-text);letter-spacing:-.02em}
+.comm-val.cyan{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:24px}
+
+/* ============================================================
+   ACCOUNT HOSTING
+============================================================ */
+.account-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+.account-card{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-lg);padding:20px;transition:box-shadow .25s,transform .25s;position:relative}
+.account-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.account-card-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.account-platform-icon{width:40px;height:40px;border-radius:var(--radius);display:grid;place-items:center;flex-shrink:0}
+.account-info{flex:1;min-width:0}
+.account-name{font-size:15px;font-weight:700;color:var(--l-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account-handle{font-size:12px;color:var(--l-muted)}
+.account-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.account-status-dot.active{background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.15)}
+.account-status-dot.paused{background:#f59e0b}
+.account-status-dot.error{background:#ef4444}
+.account-stats-row{display:flex;gap:8px;margin-bottom:14px}
+.account-stat-pill{flex:1;background:var(--l-bg2);border-radius:var(--radius-sm);padding:8px 10px;text-align:center}
+.account-stat-pill-val{font-size:16px;font-weight:800;color:var(--l-text);letter-spacing:-.02em}
+.account-stat-pill-lbl{font-size:10px;color:var(--l-muted);margin-top:1px}
+.account-tasks{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.account-task{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--l-muted);padding:6px 8px;border-radius:var(--radius-sm);background:var(--l-bg2)}
+.account-task-icon{font-size:14px;flex-shrink:0}
+.account-task-label{flex:1}
+.account-task-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--radius-full)}
+.task-on{background:rgba(16,185,129,.1);color:#10b981}
+.task-off{background:var(--l-bg3);color:var(--l-muted)}
+.account-card-actions{display:flex;gap:8px}
+.add-account-card{border:2px dashed var(--l-border);border-radius:var(--radius-lg);padding:32px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .2s;color:var(--l-muted);text-align:center}
+.add-account-card:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-light)}
+.add-account-icon{width:48px;height:48px;border-radius:50%;background:var(--l-bg2);display:grid;place-items:center;font-size:22px;transition:all .2s}
+.add-account-card:hover .add-account-icon{background:var(--cyan-light)}
+.add-account-label{font-size:14px;font-weight:600}
+.add-account-sub{font-size:12px;opacity:.7}
+
+/* ============================================================
+   CONNECT ACCOUNT MODAL
+============================================================ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:var(--radius-xl);width:100%;max-width:480px;overflow:hidden;transform:translateY(20px) scale(.97);transition:transform .25s var(--ease);box-shadow:0 24px 80px rgba(0,0,0,.2)}
+.modal-overlay.open .modal{transform:none}
+.modal-header{padding:24px 24px 0;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:18px;font-weight:800;color:var(--l-text);letter-spacing:-.02em}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--l-bg2);display:grid;place-items:center;font-size:18px;cursor:pointer;color:var(--l-muted);transition:all .2s;border:none}
+.modal-close:hover{background:var(--l-bg3);color:var(--l-text)}
+.modal-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px}
+.platform-select-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.platform-opt{border:2px solid var(--l-border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .2s}
+.platform-opt:hover,.platform-opt.selected{border-color:var(--cyan);background:var(--cyan-light)}
+.platform-opt-icon{font-size:28px}
+.platform-opt-name{font-size:14px;font-weight:700;color:var(--l-text)}
+.platform-opt-desc{font-size:11px;color:var(--l-muted);text-align:center}
+
+/* ============================================================
+   AI POST GENERATOR
+============================================================ */
+.ai-post-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.ai-post-form{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-lg);padding:24px;display:flex;flex-direction:column;gap:16px}
+.ai-post-preview{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-lg);padding:24px;display:flex;flex-direction:column;gap:16px;min-height:300px}
+.post-preview-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--l-muted);gap:10px;text-align:center}
+.post-preview-empty-icon{font-size:40px;opacity:.4}
+.post-preview-bubble{background:var(--l-bg2);border-radius:var(--radius);padding:16px 18px;font-size:15px;line-height:1.7;color:var(--l-text);white-space:pre-wrap;word-break:break-word;flex:1}
+.post-preview-actions{display:flex;gap:8px;flex-wrap:wrap}
+.tag-select{display:flex;flex-wrap:wrap;gap:6px}
+.tag-chip{padding:5px 12px;border-radius:var(--radius-full);font-size:12px;font-weight:600;background:var(--l-bg2);color:var(--l-muted);cursor:pointer;border:1.5px solid transparent;transition:all .2s;user-select:none}
+.tag-chip.selected{background:var(--cyan-light);color:var(--cyan);border-color:rgba(0,212,245,.3)}
+.char-counter{font-size:12px;color:var(--l-muted);text-align:right}
+
+/* ============================================================
+   CAROUSEL GENERATOR
+============================================================ */
+.carousel-layout{display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:start}
+.carousel-form{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-lg);padding:24px;display:flex;flex-direction:column;gap:16px}
+.carousel-preview{display:flex;flex-direction:column;gap:16px}
+.carousel-slides-wrap{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.carousel-slides-wrap::-webkit-scrollbar{height:4px}
+.carousel-slides-wrap::-webkit-scrollbar-thumb{background:var(--l-border);border-radius:2px}
+.carousel-slide{flex-shrink:0;width:200px;height:260px;border-radius:var(--radius-lg);display:flex;flex-direction:column;justify-content:flex-end;padding:20px;position:relative;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:var(--shadow)}
+.carousel-slide:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.carousel-slide-num{position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;backdrop-filter:blur(4px)}
+.carousel-slide-tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:6px}
+.carousel-slide-title{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.25;margin-bottom:6px}
+.carousel-slide-body{font-size:11px;color:rgba(255,255,255,.8);line-height:1.5}
+.carousel-slide-accent{position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;filter:blur(30px);opacity:.4;pointer-events:none}
+.carousel-empty{background:var(--l-bg2);border:2px dashed var(--l-border);border-radius:var(--radius-lg);padding:48px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--l-muted);text-align:center}
+.carousel-empty-icon{font-size:40px;opacity:.35}
+.slide-themes{display:flex;flex-wrap:wrap;gap:6px}
+.slide-theme-chip{padding:5px 12px;border-radius:var(--radius-full);font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--l-border);color:var(--l-muted);transition:all .2s}
+.slide-theme-chip.selected{border-color:var(--purple);background:var(--purple-light);color:var(--purple)}
+.carousel-actions-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.slide-count-input{width:70px;padding:9px 12px;border:1px solid var(--l-border);border-radius:var(--radius);font-size:14px;font-family:inherit;outline:none;text-align:center}
+.slide-count-input:focus{border-color:var(--cyan)}
+
+/* ============================================================
+   SCHEDULE PANEL
+============================================================ */
+.schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:24px}
+.schedule-day{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius);padding:12px 8px;text-align:center}
+.schedule-day-name{font-size:11px;font-weight:700;color:var(--l-muted);margin-bottom:8px}
+.schedule-day-posts{display:flex;flex-direction:column;gap:4px}
+.schedule-post-dot{height:5px;border-radius:2px}
+.schedule-post-dot.ig{background:#ec4899}
+.schedule-post-dot.threads{background:#000}
+.schedule-post-dot.carousel{background:var(--purple)}
+.schedule-legend{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.schedule-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--l-muted)}
+.schedule-legend-dot{width:10px;height:10px;border-radius:2px}
+.task-queue{display:flex;flex-direction:column;gap:10px}
+.task-queue-item{background:#fff;border:1px solid var(--l-border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px}
+.task-queue-icon{width:36px;height:36px;border-radius:var(--radius-sm);display:grid;place-items:center;font-size:16px;flex-shrink:0}
+.task-queue-info{flex:1;min-width:0}
+.task-queue-title{font-size:14px;font-weight:600;color:var(--l-text)}
+.task-queue-meta{font-size:12px;color:var(--l-muted);margin-top:2px}
+.task-queue-status{flex-shrink:0}
+
+/* ============================================================
+   FORM ELEMENTS (shared)
+============================================================ */
+.field-group{display:flex;flex-direction:column;gap:6px}
+.field-label{font-size:13px;font-weight:600;color:var(--l-text)}
+.field-input,.field-textarea,.field-select{width:100%;padding:11px 14px;background:var(--l-bg2);border:1px solid var(--l-border);border-radius:var(--radius);font-size:14px;color:var(--l-text);font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+.field-input:focus,.field-textarea:focus,.field-select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,245,.1);background:#fff}
+.field-textarea{resize:vertical;min-height:90px;line-height:1.6}
+.field-hint{font-size:12px;color:var(--l-muted)}
+.section-divider-line{height:1px;background:var(--l-border);margin:8px 0}
+
+/* Cookie timeline */
+.cookie-timeline{display:flex;flex-direction:column;gap:0}
+.cookie-evt{display:flex;gap:14px;padding-bottom:18px;position:relative}
+.cookie-evt::before{content:'';position:absolute;left:12px;top:26px;bottom:0;width:1px;background:var(--l-border)}
+.cookie-evt:last-child::before{display:none}
+.cookie-evt-dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;flex-shrink:0;z-index:1;border:1.5px solid var(--l-border);background:#fff}
+.cookie-evt-dot.active{background:rgba(0,212,245,.1);border-color:var(--cyan)}
+.cookie-evt-content{padding-top:2px}
+.cookie-evt-title{font-size:14px;font-weight:600;color:var(--l-text)}
+.cookie-evt-detail{font-size:12px;color:var(--l-muted)}
+.cookie-evt-time{font-size:11px;color:var(--l-muted);margin-top:2px}
+
+/* ============================================================
+   TOAST
+============================================================ */
+#toasts{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:12px;padding:13px 18px;border-radius:var(--radius);background:#1a1a2e;border:1px solid rgba(255,255,255,.1);box-shadow:0 8px 32px rgba(0,0,0,.3);font-size:14px;font-weight:500;color:#fff;max-width:340px;animation:toastIn .3s var(--ease) both}
+@keyframes toastIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.toast-icon{font-size:18px}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media(max-width:1024px){
+  .bento{grid-template-columns:repeat(2,1fr)}
+  .bc-1,.bc-2,.bc-3,.bc-4,.bc-5,.bc-6,.bc-7{grid-column:span 1}
+  .pricing-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto}
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .metrics-grid{grid-template-columns:repeat(2,1fr)}
+  .how-steps{grid-template-columns:1fr}
+  .dash-sidebar{width:200px}
+}
+@media(max-width:768px){
+  .nav-links,.nav-cta .btn-ghost-dark{display:none}
+  .nav-hamburger{display:block;color:var(--d-text)}
+  #navbar.scrolled .nav-hamburger{color:var(--l-text)}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .bento{grid-template-columns:1fr}
+  .bc-1,.bc-2,.bc-3,.bc-4,.bc-5,.bc-6,.bc-7{grid-column:span 1}
+  .hero-h1{font-size:44px}
+  .footer-grid{grid-template-columns:1fr}
+  .footer-bottom{flex-direction:column;gap:8px;text-align:center}
+  .dash-sidebar{display:none}
+  .metrics-grid{grid-template-columns:1fr 1fr}
+  .how-steps{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+  .hero-actions{flex-direction:column;width:100%;max-width:320px;margin-left:auto;margin-right:auto}
+  .hero-actions .btn{width:100%}
+  .metrics-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toasts"></div>
+
+<!-- =====================================================
+     PAGE: LANDING
+===================================================== -->
+<div id="page-landing" class="page active">
+
+  <!-- NAVBAR -->
+  <nav id="navbar">
+    <div class="nav-wrap">
+      <a href="#" class="nav-logo" onclick="navigate('landing')">
+        <div class="nav-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/></svg>
+        </div>
+        <span class="nav-logo-text">Reply<span>AI</span></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">功能</a></li>
+        <li><a href="#pricing">定價</a></li>
+        <li><a href="#faq">常見問題</a></li>
+        <li><a href="#" onclick="navigate('landing')">企業方案</a></li>
+      </ul>
+      <div class="nav-cta">
+        <button class="btn btn-ghost-dark btn-sm" onclick="navigate('login')">登入</button>
+        <button class="btn btn-cyan btn-sm" onclick="navigate('login')">免費開始 →</button>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="選單">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge badge-cyan"><span class="badge-dot"></span>GPT-4o 驅動 · 台灣首創</span>
+      </div>
+      <h1 class="hero-h1">
+        自動化你的<br><em>Threads 回覆力</em>
+      </h1>
+      <p class="hero-sub">
+        智能 AI 24 小時幫你處理所有留言回覆，<br>關鍵字搜尋、自動導購、品牌語氣客製。
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-cyan btn-lg" onclick="navigate('login')">
+          <span class="btn-label">免費試用 14 天</span>
+        </button>
+        <a href="#features" class="btn btn-ghost-dark btn-lg">
+          <span class="btn-label">看看功能</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <section id="marquee">
+    <p class="marquee-label">整合你的社群生態</p>
+    <div class="marquee-track">
+      <div class="marquee-list" aria-hidden="true">
+        <!-- Threads -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068c0-3.637.906-6.57 2.694-8.718C6.063 1.153 8.773 0 12.186 0c3.412 0 6.122 1.153 7.991 3.35 1.788 2.148 2.694 5.08 2.694 8.718s-.906 6.571-2.694 8.72C18.308 22.986 15.598 24 12.186 24zm5.49-12.387c-.157-1.6-1.073-2.733-2.703-3.367-.897-.343-1.885-.494-2.939-.45-.358.015-.714.05-1.065.106-.083-.67-.091-1.334-.023-1.98.161-1.532.885-2.483 2.015-2.665a2.8 2.8 0 0 1 .44-.035c.826 0 1.546.355 2.14 1.054l1.563-1.357C16.125 1.817 14.45.927 12.536.927c-.27 0-.543.018-.814.055-1.951.274-3.338 1.618-3.8 3.666-.268 1.19-.212 2.44.165 3.71a10.53 10.53 0 0 0-1.61.584c-1.658.79-2.58 2.09-2.58 3.66 0 .195.013.392.04.586.225 1.614 1.22 2.854 2.8 3.492.882.357 1.877.524 2.953.5.38-.009.76-.041 1.135-.096.1.726.106 1.448.02 2.147-.204 1.659-1.013 2.68-2.276 2.868a2.79 2.79 0 0 1-.412.03c-.885 0-1.653-.395-2.286-1.172l-1.54 1.382c.9 1.117 2.14 1.73 3.613 1.799.147.007.294.01.44.01 2.4 0 4.12-1.447 4.68-3.862.26-1.118.239-2.273-.062-3.43a9.2 9.2 0 0 0 1.06-.3c1.73-.633 2.707-1.887 2.874-3.626zm-5.95 2.456c-.718.098-1.454.043-2.143-.164-.716-.215-1.18-.666-1.247-1.232a1.07 1.07 0 0 1-.01-.143c0-.726.527-1.278 1.568-1.641.55-.19 1.127-.293 1.72-.307h.063c.447 0 .893.053 1.33.157.08.98.019 1.975-.194 2.945a7.1 7.1 0 0 1-1.087.385z"/></svg>
+          Threads
+        </div>
+        <!-- Instagram -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+          Instagram
+        </div>
+        <!-- Facebook -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook
+        </div>
+        <!-- OpenAI / GPT-4o -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.896zm16.597 3.855l-5.833-3.387 2.019-1.168a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.411-.663zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/></svg>
+          GPT-4o
+        </div>
+        <!-- Meta -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.915 4.03c-1.968 0-3.683 1.28-4.871 3.113C.704 9.208 0 11.883 0 14.449c0 .706.07 1.369.21 1.973a6.624 6.624 0 0 0 .265.86 5.297 5.297 0 0 0 .371.761c.696 1.159 1.818 1.927 3.593 1.927 1.497 0 2.633-.671 3.965-2.444.76-1.012 1.144-1.626 2.663-4.32l.756-1.339.186-.325c.061.1.121.196.183.3l2.152 3.595c.724 1.21 1.665 2.556 2.47 3.314 1.046.987 1.992 1.22 3.06 1.22 1.075 0 1.876-.355 2.455-.843a3.743 3.743 0 0 0 .81-.973c.542-.939.861-2.127.861-3.745 0-2.72-.681-5.357-2.084-7.45-1.282-1.912-2.957-2.93-4.716-2.93-1.047 0-2.088.467-3.053 1.308-.763.665-1.554 1.578-2.36 2.7-.39-.61-.773-1.163-1.148-1.639C9.738 4.753 8.41 4.03 6.915 4.03zm10.44 2.311c1.246 0 2.47.782 3.48 2.302 1.1 1.66 1.702 4.001 1.702 6.468 0 1.22-.255 2.203-.737 2.863-.132.181-.275.343-.426.487a1.785 1.785 0 0 1-1.186.516c-.645 0-1.218-.226-1.943-.98-.731-.76-1.598-2.01-2.404-3.348L15.24 12.18l-.242-.404c.415-.743.845-1.48 1.276-2.148.152-.238.304-.47.453-.689.576-.838 1.07-1.415 1.627-1.794zm-10.44.45c.997 0 1.913.47 2.951 1.65.355.408.719.898 1.095 1.477l-.191.33c-.802 1.388-1.914 3.498-2.669 4.748-1.139 1.919-2.085 2.965-3.112 2.965-.926 0-1.573-.419-2.054-1.218a4.638 4.638 0 0 1-.276-.621 5.615 5.615 0 0 1-.187-1.516c0-2.174.592-4.619 1.822-6.322.882-1.23 1.87-1.493 2.621-1.493z"/></svg>
+          Meta
+        </div>
+        <!-- Webhook / API -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-1-5h2v2h-2v-2zm2-1.645V14h-2v-1.5a1 1 0 0 1 1-1 1.5 1.5 0 1 0-1.471-1.794l-1.962-.393A3.5 3.5 0 1 1 13 13.355z"/></svg>
+          API
+        </div>
+        <!-- LINE -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+          LINE
+        </div>
+        <!-- TikTok -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+          TikTok
+        </div>
+      </div>
+      <div class="marquee-list" aria-hidden="true">
+        <!-- Threads -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068c0-3.637.906-6.57 2.694-8.718C6.063 1.153 8.773 0 12.186 0c3.412 0 6.122 1.153 7.991 3.35 1.788 2.148 2.694 5.08 2.694 8.718s-.906 6.571-2.694 8.72C18.308 22.986 15.598 24 12.186 24zm5.49-12.387c-.157-1.6-1.073-2.733-2.703-3.367-.897-.343-1.885-.494-2.939-.45-.358.015-.714.05-1.065.106-.083-.67-.091-1.334-.023-1.98.161-1.532.885-2.483 2.015-2.665a2.8 2.8 0 0 1 .44-.035c.826 0 1.546.355 2.14 1.054l1.563-1.357C16.125 1.817 14.45.927 12.536.927c-.27 0-.543.018-.814.055-1.951.274-3.338 1.618-3.8 3.666-.268 1.19-.212 2.44.165 3.71a10.53 10.53 0 0 0-1.61.584c-1.658.79-2.58 2.09-2.58 3.66 0 .195.013.392.04.586.225 1.614 1.22 2.854 2.8 3.492.882.357 1.877.524 2.953.5.38-.009.76-.041 1.135-.096.1.726.106 1.448.02 2.147-.204 1.659-1.013 2.68-2.276 2.868a2.79 2.79 0 0 1-.412.03c-.885 0-1.653-.395-2.286-1.172l-1.54 1.382c.9 1.117 2.14 1.73 3.613 1.799.147.007.294.01.44.01 2.4 0 4.12-1.447 4.68-3.862.26-1.118.239-2.273-.062-3.43a9.2 9.2 0 0 0 1.06-.3c1.73-.633 2.707-1.887 2.874-3.626zm-5.95 2.456c-.718.098-1.454.043-2.143-.164-.716-.215-1.18-.666-1.247-1.232a1.07 1.07 0 0 1-.01-.143c0-.726.527-1.278 1.568-1.641.55-.19 1.127-.293 1.72-.307h.063c.447 0 .893.053 1.33.157.08.98.019 1.975-.194 2.945a7.1 7.1 0 0 1-1.087.385z"/></svg>
+          Threads
+        </div>
+        <!-- Instagram -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+          Instagram
+        </div>
+        <!-- Facebook -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook
+        </div>
+        <!-- OpenAI / GPT-4o -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.896zm16.597 3.855l-5.833-3.387 2.019-1.168a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.411-.663zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/></svg>
+          GPT-4o
+        </div>
+        <!-- Meta -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.915 4.03c-1.968 0-3.683 1.28-4.871 3.113C.704 9.208 0 11.883 0 14.449c0 .706.07 1.369.21 1.973a6.624 6.624 0 0 0 .265.86 5.297 5.297 0 0 0 .371.761c.696 1.159 1.818 1.927 3.593 1.927 1.497 0 2.633-.671 3.965-2.444.76-1.012 1.144-1.626 2.663-4.32l.756-1.339.186-.325c.061.1.121.196.183.3l2.152 3.595c.724 1.21 1.665 2.556 2.47 3.314 1.046.987 1.992 1.22 3.06 1.22 1.075 0 1.876-.355 2.455-.843a3.743 3.743 0 0 0 .81-.973c.542-.939.861-2.127.861-3.745 0-2.72-.681-5.357-2.084-7.45-1.282-1.912-2.957-2.93-4.716-2.93-1.047 0-2.088.467-3.053 1.308-.763.665-1.554 1.578-2.36 2.7-.39-.61-.773-1.163-1.148-1.639C9.738 4.753 8.41 4.03 6.915 4.03zm10.44 2.311c1.246 0 2.47.782 3.48 2.302 1.1 1.66 1.702 4.001 1.702 6.468 0 1.22-.255 2.203-.737 2.863-.132.181-.275.343-.426.487a1.785 1.785 0 0 1-1.186.516c-.645 0-1.218-.226-1.943-.98-.731-.76-1.598-2.01-2.404-3.348L15.24 12.18l-.242-.404c.415-.743.845-1.48 1.276-2.148.152-.238.304-.47.453-.689.576-.838 1.07-1.415 1.627-1.794zm-10.44.45c.997 0 1.913.47 2.951 1.65.355.408.719.898 1.095 1.477l-.191.33c-.802 1.388-1.914 3.498-2.669 4.748-1.139 1.919-2.085 2.965-3.112 2.965-.926 0-1.573-.419-2.054-1.218a4.638 4.638 0 0 1-.276-.621 5.615 5.615 0 0 1-.187-1.516c0-2.174.592-4.619 1.822-6.322.882-1.23 1.87-1.493 2.621-1.493z"/></svg>
+          Meta
+        </div>
+        <!-- Webhook / API -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-1-5h2v2h-2v-2zm2-1.645V14h-2v-1.5a1 1 0 0 1 1-1 1.5 1.5 0 1 0-1.471-1.794l-1.962-.393A3.5 3.5 0 1 1 13 13.355z"/></svg>
+          API
+        </div>
+        <!-- LINE -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+          LINE
+        </div>
+        <!-- TikTok -->
+        <div class="marquee-item">
+          <svg class="marquee-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+          TikTok
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-cell">
+          <div class="stat-value"><b class="counter" data-to="5000" data-suffix="+">0</b></div>
+          <div class="stat-label">活躍品牌用戶</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value"><b class="counter" data-to="98" data-suffix="%">0</b></div>
+          <div class="stat-label">AI 回覆準確率</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value"><b class="counter" data-to="3" data-suffix=".2s">0</b></div>
+          <div class="stat-label">平均回覆時間</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value"><b>NT$0</b></div>
+          <div class="stat-label">免費開始試用</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section id="problem">
+    <div class="container">
+      <div class="problem-inner reveal">
+        <p class="section-tag">為什麼選擇 ReplyAI</p>
+        <h2 class="problem-h2">品牌每天都在<br><em>錯過留言的機會</em></h2>
+        <p class="problem-p">
+          Threads 的演算法越來越重視互動率。每一則未回覆的留言，
+          都是流失的潛在客戶。ReplyAI 讓你的品牌全天候保持活躍，
+          讓 AI 成為你最勤勞的小編。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES BENTO -->
+  <section id="features">
+    <div class="container">
+      <div class="features-header reveal">
+        <p class="section-tag">核心功能</p>
+        <h2 class="section-h2">一個平台，<em>全部搞定</em></h2>
+        <p class="section-sub">六大功能模組，從回覆到分析，專為台灣品牌設計</p>
+      </div>
+
+      <div class="bento stagger">
+
+        <!-- Card 1: AI Reply (large) -->
+        <div class="bento-card bc-1">
+          <div class="bento-card-inner">
+            <div>
+              <div class="bento-card-tag">核心功能</div>
+              <div class="bento-card-title">AI 智能自動回覆</div>
+              <div class="bento-card-desc">每 30 分鐘自動掃描新留言，AI 讀懂內容後生成客製化回覆，支援品牌語氣與導購連結。</div>
+            </div>
+            <div class="mockup">
+              <div class="mockup-bar">
+                <div class="mockup-dot mockup-dot-r"></div>
+                <div class="mockup-dot mockup-dot-y"></div>
+                <div class="mockup-dot mockup-dot-g"></div>
+                <div class="mockup-title-bar"></div>
+              </div>
+              <div class="mockup-body">
+                <div class="thread-post">
+                  <div class="thread-avatar">品</div>
+                  <div class="thread-content">
+                    <div class="thread-name">@brand_official</div>
+                    <div class="thread-text">✨ 全新秋冬系列正式上線！限時 7 折優惠，快來看看！</div>
+                  </div>
+                </div>
+                <div style="padding-left:42px">
+                  <div class="thread-text" style="color:rgba(255,255,255,.35);font-size:11px;margin-bottom:6px">💬 用戶：這個價格真的合理嗎？跟實體店一樣嗎？</div>
+                  <div class="thread-reply">
+                    <div class="thread-reply-label">
+                      <span class="pulse-dot"></span>AI 自動回覆中
+                    </div>
+                    <div class="thread-reply-text">感謝您的詢問！線上特惠價較實體店低 15%，現在下單還享有免運優惠～ 點選連結直接結帳 🛒</div>
+                    <div class="thread-meta">
+                      <span class="pulse-dot"></span>
+                      <span>2.8 秒 自動生成</span>
+                      <span>·</span>
+                      <span style="color:var(--cyan)">GPT-4o</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Keyword Search (medium) -->
+        <div class="bento-card bc-2">
+          <div class="bento-card-inner">
+            <div>
+              <div class="bento-card-tag">海巡功能</div>
+              <div class="bento-card-title">24 小時關鍵字海巡</div>
+              <div class="bento-card-desc">全天候搜尋 Threads 相關貼文，自動留言推廣，每天最多 100 則。</div>
+            </div>
+            <div class="mockup">
+              <div class="mockup-bar">
+                <div class="mockup-dot mockup-dot-r"></div>
+                <div class="mockup-dot mockup-dot-y"></div>
+                <div class="mockup-dot mockup-dot-g"></div>
+                <div class="mockup-title-bar"></div>
+              </div>
+              <div class="mockup-body">
+                <div class="search-input-mock">
+                  <span>🔍</span>
+                  <span>台灣美妝推薦...</span>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:10px">
+                  <span class="search-tag">保養品</span>
+                  <span class="search-tag">面膜推薦</span>
+                  <span class="search-tag">台灣美妝</span>
+                </div>
+                <div class="search-result-row">
+                  <span class="search-result-icon">📝</span>
+                  <div class="search-result-text"><b style="color:#fff">@beauty_tw</b>：有沒有人知道哪個保養品牌…</div>
+                </div>
+                <div class="search-result-row">
+                  <span class="search-result-icon">📝</span>
+                  <div class="search-result-text"><b style="color:#fff">@skincare101</b>：推薦大家試試看這個面膜…</div>
+                </div>
+                <div class="search-result-row">
+                  <span class="search-result-icon">📝</span>
+                  <div class="search-result-text"><b style="color:#fff">@daily_life</b>：有沒有推薦的台灣品牌？</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Analytics (medium) -->
+        <div class="bento-card bc-3">
+          <div class="bento-card-inner">
+            <div>
+              <div class="bento-card-tag">數據分析</div>
+              <div class="bento-card-title">即時數據儀表板</div>
+              <div class="bento-card-desc">追蹤回覆量、轉換率與互動成長，所有數據一眼掌握。</div>
+            </div>
+            <div class="mockup">
+              <div class="mockup-bar">
+                <div class="mockup-dot mockup-dot-r"></div>
+                <div class="mockup-dot mockup-dot-y"></div>
+                <div class="mockup-dot mockup-dot-g"></div>
+                <div class="mockup-title-bar"></div>
+              </div>
+              <div class="mockup-body">
+                <div class="analytics-row" id="mini-chart">
+                  <!-- bars injected by JS -->
+                </div>
+                <div class="analytics-stats">
+                  <div class="analytics-stat">
+                    <div class="analytics-stat-val">3,847</div>
+                    <div class="analytics-stat-lbl">本月回覆</div>
+                    <div class="analytics-stat-change">↑ 23%</div>
+                  </div>
+                  <div class="analytics-stat">
+                    <div class="analytics-stat-val">18.2%</div>
+                    <div class="analytics-stat-lbl">轉換率</div>
+                    <div class="analytics-stat-change">↑ 5.1%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Tone customization (large) -->
+        <div class="bento-card bc-4">
+          <div class="bento-card-inner">
+            <div>
+              <div class="bento-card-tag">品牌設定</div>
+              <div class="bento-card-title">客製化品牌語氣</div>
+              <div class="bento-card-desc">設定你的品牌個性，AI 自動以對應語氣回覆。從親切友善到正式專業，完全符合品牌形象。</div>
+            </div>
+            <div class="mockup">
+              <div class="mockup-bar">
+                <div class="mockup-dot mockup-dot-r"></div>
+                <div class="mockup-dot mockup-dot-y"></div>
+                <div class="mockup-dot mockup-dot-g"></div>
+                <div class="mockup-title-bar"></div>
+              </div>
+              <div class="mockup-body">
+                <div class="tone-list">
+                  <div class="tone-opt active">
+                    <div class="tone-radio"></div>
+                    <span class="tone-name">親切友善</span>
+                    <span class="tone-badge">使用中</span>
+                  </div>
+                  <div class="tone-opt">
+                    <div class="tone-radio"></div>
+                    <span class="tone-name">專業正式</span>
+                  </div>
+                  <div class="tone-opt">
+                    <div class="tone-radio"></div>
+                    <span class="tone-name">輕鬆幽默</span>
+                  </div>
+                </div>
+                <div class="tone-preview">
+                  「哇！感謝你的留言 😊 我們的產品已通過多項認證，很多用戶反映效果非常顯著！現在有早鳥優惠，要不要先了解看看？」
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Multi-account -->
+        <div class="bento-card bc-5">
+          <div class="bento-card-inner">
+            <div class="bento-card-tag">管理</div>
+            <div class="bento-card-title">多帳號管理</div>
+            <div class="bento-card-desc">一個後台管理多個品牌帳號，適合代操團隊。</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+              <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border-radius:var(--radius-full);padding:6px 12px 6px 6px">
+                <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#00d4f5,#7c3aed);display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff">A</div>
+                <span style="font-size:12px;color:#fff;font-weight:600">@brand_a</span>
+                <span style="width:6px;height:6px;border-radius:50%;background:#10b981;flex-shrink:0"></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border-radius:var(--radius-full);padding:6px 12px 6px 6px">
+                <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#f59e0b);display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff">B</div>
+                <span style="font-size:12px;color:#fff;font-weight:600">@store_b</span>
+                <span style="width:6px;height:6px;border-radius:50%;background:#10b981;flex-shrink:0"></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border-radius:var(--radius-full);padding:6px 12px 6px 6px;opacity:.5">
+                <div style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.1);display:grid;place-items:center;font-size:16px">+</div>
+                <span style="font-size:12px;color:var(--d-muted)">新增帳號</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6: Speed -->
+        <div class="bento-card bc-6">
+          <div class="bento-card-inner">
+            <div class="bento-card-tag">效能</div>
+            <div class="bento-card-title">極速 AI 回覆</div>
+            <div class="bento-card-desc">平均 3.2 秒完成回覆生成，全天候不中斷。</div>
+            <div style="text-align:center;padding:16px 0">
+              <div style="font-size:52px;font-weight:900;color:var(--cyan);letter-spacing:-.04em;line-height:1">3.2<span style="font-size:24px">s</span></div>
+              <div style="font-size:12px;color:var(--d-muted);margin-top:4px">平均回覆生成時間</div>
+              <div style="display:flex;gap:8px;margin-top:14px;justify-content:center">
+                <div style="height:4px;background:var(--cyan);border-radius:2px;flex:3;opacity:.9"></div>
+                <div style="height:4px;background:rgba(255,255,255,.15);border-radius:2px;flex:1"></div>
+              </div>
+              <div style="font-size:10px;color:var(--d-muted);margin-top:5px">99.9% 正常運行時間</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7: IG DM (wide bottom) -->
+        <div class="bento-card bc-7">
+          <div class="bento-card-inner">
+            <div class="bento-card-tag">即將推出</div>
+            <div class="bento-card-title">IG 留言轉私訊</div>
+            <div class="bento-card-desc">留言互動自動觸發 DM，一對一轉換更高效。</div>
+            <span class="badge badge-warn" style="margin-top:auto">即將上線</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="container">
+      <div class="features-header reveal">
+        <p class="section-tag">訂閱方案</p>
+        <h2 class="section-h2">選擇<em>最適合你的方案</em></h2>
+        <p class="section-sub">靈活訂閱，按需升級，隨時取消</p>
+      </div>
+      <div class="pricing-grid">
+
+        <div class="pricing-card">
+          <div class="pricing-tier">基礎版</div>
+          <div class="pricing-price">
+            <span class="pricing-curr">NT$</span>
+            <span class="pricing-amt">390</span>
+            <span class="pricing-per">/月</span>
+          </div>
+          <p class="pricing-desc">適合個人創作者與小型店家，輕鬆入門 AI 回覆。</p>
+          <ul class="pricing-features">
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>每月 500 則 AI 自動回覆</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>關鍵字搜尋（3 組）</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>基礎數據分析</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>連結 1 個帳號</li>
+            <li class="pricing-feature muted"><span class="pricing-feature-icon">—</span>多帳號管理</li>
+            <li class="pricing-feature muted"><span class="pricing-feature-icon">—</span>進階語氣客製</li>
+          </ul>
+          <button class="btn btn-outline" style="width:100%" onclick="navigate('login')">開始試用</button>
+        </div>
+
+        <div class="pricing-card featured">
+          <div class="pricing-pill">最多人選擇</div>
+          <div class="pricing-tier">專業版</div>
+          <div class="pricing-price">
+            <span class="pricing-curr">NT$</span>
+            <span class="pricing-amt">650</span>
+            <span class="pricing-per">/月</span>
+          </div>
+          <p class="pricing-desc">適合成長中的品牌，解鎖全部 AI 功能，全力衝高互動。</p>
+          <ul class="pricing-features">
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>無限 AI 自動回覆</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>關鍵字搜尋（無限組）</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>進階數據儀表板</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>多帳號管理（最多 3 個）</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>進階語氣客製化</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>優先客服支援</li>
+          </ul>
+          <button class="btn btn-dark" style="width:100%" onclick="navigate('login')">立即升級</button>
+        </div>
+
+        <div class="pricing-card">
+          <div class="pricing-tier">企業版</div>
+          <div class="pricing-price">
+            <span class="pricing-amt" style="font-size:36px">客製</span>
+          </div>
+          <p class="pricing-desc">為大型電商與媒體量身打造的白標 AI 解決方案。</p>
+          <ul class="pricing-features">
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>無限帳號與回覆量</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>API 串接整合</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>白標品牌客製</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>專屬 AI 模型訓練</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>SLA 保證</li>
+            <li class="pricing-feature"><span class="pricing-feature-icon">✓</span>專屬客戶成功團隊</li>
+          </ul>
+          <button class="btn btn-outline" style="width:100%" onclick="showToast('業務洽談已記錄，我們將盡快聯繫您！','✅')">聯絡業務</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="container">
+      <div class="features-header reveal">
+        <p class="section-tag">常見問題</p>
+        <h2 class="section-h2">您所有的<em>疑問</em></h2>
+      </div>
+      <div class="faq-max">
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">AI 回覆的準確性如何保障？<span class="faq-icon">+</span></button>
+          <div class="faq-a"><div class="faq-a-inner">ReplyAI 基於 GPT-4o，並針對台灣品牌語境進行微調。您可以設定品牌資料庫（產品描述、常見問題、禁用詞彙），確保 AI 回覆完全符合品牌形象。系統提供人工審核模式，所有回覆都可在送出前確認。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">我的 Threads 帳號會被停權嗎？<span class="faq-icon">+</span></button>
+          <div class="faq-a"><div class="faq-a-inner">ReplyAI 嚴格遵守 Meta 平台規範，採用模擬人類行為的間隔機制（每則留言之間隨機延遲），並設有每日上限。基礎版每日最多 50 則，專業版最多 200 則，保護您的帳號安全。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">可以試用之後再決定嗎？<span class="faq-icon">+</span></button>
+          <div class="faq-a"><div class="faq-a-inner">可以！所有方案均提供 14 天免費試用，無需綁定信用卡。試用期結束後，您可以選擇訂閱或取消，完全沒有強制收費。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">我的帳號資料安全嗎？<span class="faq-icon">+</span></button>
+          <div class="faq-a"><div class="faq-a-inner">您的資料使用 AES-256 加密儲存，不會用於訓練公共 AI 模型，也不會共享給第三方。我們符合台灣個資法規範，您可隨時要求刪除所有帳號資料。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">可以隨時取消訂閱嗎？<span class="faq-icon">+</span></button>
+          <div class="faq-a"><div class="faq-a-inner">可以，隨時取消，無違約金。取消後服務持續到當期結束，不會立即停止。您的帳號資料保留 30 天，期間可以隨時重新啟用。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">支援企業 API 嗎？<span class="faq-icon">+</span></button>
+          <div class="faq-a"><div class="faq-a-inner">企業版提供完整 REST API，可整合到您的 CRM、客服系統或電商平台。我們提供詳細的 API 文件、SDK 以及專屬技術支援，協助您完成整合。</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section id="cta-final">
+    <div class="cta-orb cta-orb-1"></div>
+    <div class="cta-orb cta-orb-2"></div>
+    <div class="container">
+      <div class="cta-inner reveal">
+        <h2 class="cta-h2">準備好讓 AI<br><em>幫你回留言了嗎？</em></h2>
+        <p class="cta-sub">14 天免費試用，無需信用卡，隨時取消</p>
+        <div class="cta-actions">
+          <button class="btn btn-cyan btn-lg" onclick="navigate('login')">免費開始 14 天試用</button>
+          <button class="btn btn-ghost-dark btn-lg" onclick="showToast('業務洽談已記錄！','✅')">企業洽談</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo">
+            <div class="footer-logo-mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/></svg></div>
+            <span class="footer-brand-name">Reply<span>AI</span></span>
+          </div>
+          <p class="footer-tagline">台灣首款 Threads AI 自動回覆平台，讓品牌互動變得更智慧、更高效。</p>
+          <span class="badge badge-success"><span class="badge-dot"></span>系統正常運行</span>
+        </div>
+        <div>
+          <div class="footer-col-title">產品</div>
+          <ul class="footer-links">
+            <li><a href="#features">功能介紹</a></li>
+            <li><a href="#pricing">訂閱方案</a></li>
+            <li><a href="#faq">常見問題</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">資源</div>
+          <ul class="footer-links">
+            <li><a href="#">使用教學</a></li>
+            <li><a href="#">API 文件</a></li>
+            <li><a href="#">更新日誌</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">支援</div>
+          <ul class="footer-links">
+            <li><a href="#">聯絡客服</a></li>
+            <li><a href="#">服務條款</a></li>
+            <li><a href="#">隱私政策</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">© 2026 ReplyAI. All rights reserved. 台灣製造 🇹🇼</span>
+        <span class="footer-copy">Powered by GPT-4o</span>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- end page-landing -->
+
+
+<!-- =====================================================
+     PAGE: LOGIN
+===================================================== -->
+<div id="page-login" class="page">
+  <div class="login-card">
+    <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:rgba(255,255,255,.45);background:none;border:none;cursor:pointer;padding:0;margin-bottom:24px;transition:color .2s" onmouseover="this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.color='rgba(255,255,255,.45)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      返回首頁
+    </button>
+    <div class="login-logo">
+      <div class="login-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/></svg>
+      </div>
+      <span style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.03em">Reply<span style="color:var(--cyan)">AI</span></span>
+    </div>
+    <h1 class="login-title">創作者後台登入</h1>
+    <p class="login-sub">管理你的 AI 回覆設定與推薦數據</p>
+
+    <div class="form-group">
+      <label class="form-label">電子郵件</label>
+      <input class="form-input" type="email" id="login-email" placeholder="your@email.com" value="demo@replyai.tw"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">密碼</label>
+      <input class="form-input" type="password" id="login-password" placeholder="••••••••" value="demo1234"/>
+      <a href="#" class="login-forgot">忘記密碼？</a>
+    </div>
+
+    <button class="btn btn-cyan" style="width:100%;margin-top:8px" onclick="doLogin()">
+      <span class="btn-label">登入後台</span>
+    </button>
+
+    <div class="login-divider"><span>或</span></div>
+
+    <button class="btn btn-ghost-dark" style="width:100%" onclick="doLogin()">
+      <span class="btn-label">🚀 使用 Demo 帳號體驗</span>
+    </button>
+
+    <p class="login-footer-text">還沒有帳號？<a href="#" onclick="doLogin()">免費試用 14 天 →</a></p>
+  </div>
+</div>
+
+
+<!-- =====================================================
+     PAGE: DASHBOARD
+===================================================== -->
+<div id="page-dashboard" class="page">
+  <!-- Dash Navbar -->
+  <div class="dash-nav">
+    <div class="dash-logo">
+      <div class="dash-logo-mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/></svg></div>
+      <span class="dash-logo-text">Reply<span>AI</span></span>
+    </div>
+    <span class="badge badge-cyan dash-nav-badge">創作者後台</span>
+    <div class="dash-user">
+      <span style="font-size:13px;color:var(--l-muted)">Demo 模式</span>
+      <div class="dash-user-avatar">D</div>
+      <span class="dash-user-name">demo_creator</span>
+      <button class="btn btn-outline btn-sm" onclick="navigate('landing')" style="font-size:13px">登出</button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <!-- Sidebar -->
+    <aside class="dash-sidebar">
+      <div class="dash-sidebar-section">
+        <div class="dash-sidebar-label">數據總覽</div>
+        <div class="dash-nav-item active" onclick="switchTab('overview',this)"><span class="dash-nav-item-icon">📊</span>總覽</div>
+        <div class="dash-nav-item" onclick="switchTab('referral',this)"><span class="dash-nav-item-icon">🔗</span>推薦連結</div>
+        <div class="dash-nav-item" onclick="switchTab('earnings',this)"><span class="dash-nav-item-icon">💰</span>收益明細</div>
+        <div class="dash-nav-item" onclick="switchTab('cookies',this)"><span class="dash-nav-item-icon">🍪</span>Cookie 追蹤</div>
+      </div>
+      <div class="dash-sidebar-section">
+        <div class="dash-sidebar-label">帳號托管</div>
+        <div class="dash-nav-item" onclick="switchTab('accounts',this)"><span class="dash-nav-item-icon">📱</span>我的帳號</div>
+        <div class="dash-nav-item" onclick="switchTab('schedule',this)"><span class="dash-nav-item-icon">📅</span>發文排程</div>
+        <div class="dash-nav-item" onclick="switchTab('threads-scan',this)"><span class="dash-nav-item-icon">🔍</span>Threads 海巡</div>
+      </div>
+      <div class="dash-sidebar-section">
+        <div class="dash-sidebar-label">AI 內容生成</div>
+        <div class="dash-nav-item" onclick="switchTab('aipost',this)"><span class="dash-nav-item-icon">✍️</span>AI 發文生成</div>
+        <div class="dash-nav-item" onclick="switchTab('carousel',this)"><span class="dash-nav-item-icon">🎠</span>輪播圖生成</div>
+      </div>
+      <div class="dash-sidebar-section">
+        <div class="dash-sidebar-label">設定</div>
+        <div class="dash-nav-item" onclick="switchTab('settings',this)"><span class="dash-nav-item-icon">⚙️</span>帳號設定</div>
+        <div class="dash-nav-item" onclick="navigate('landing')"><span class="dash-nav-item-icon">🏠</span>回到首頁</div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="dash-main">
+
+      <!-- TAB: OVERVIEW -->
+      <div class="dash-tab active" id="tab-overview">
+        <h1 class="dash-page-title">歡迎回來，demo_creator 👋</h1>
+        <p class="dash-page-sub">以下是你的推薦計畫總覽（Demo 數據）</p>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-card-label">總推薦點擊</div>
+            <div class="metric-card-value">1,284</div>
+            <span class="metric-card-change change-up">↑ 18% 本月</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-card-label">成功推薦人數</div>
+            <div class="metric-card-value">47</div>
+            <span class="metric-card-change change-up">↑ 5 本週</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-card-label">本月佣金</div>
+            <div class="metric-card-value">NT$4,680</div>
+            <span class="metric-card-change change-up">↑ 31%</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-card-label">可提領金額</div>
+            <div class="metric-card-value">NT$3,120</div>
+            <span class="metric-card-change change-neutral">提領門檻 NT$500</span>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-panel">
+          <div class="chart-header">
+            <div class="chart-title">每週推薦點擊 vs 成功轉換</div>
+            <div class="chart-legend">
+              <div class="legend-item"><span class="legend-dot" style="background:var(--cyan)"></span>點擊數</div>
+              <div class="legend-item"><span class="legend-dot" style="background:var(--purple)"></span>轉換數</div>
+            </div>
+          </div>
+          <div class="chart-bars" id="main-chart"></div>
+        </div>
+
+        <!-- Recent events -->
+        <div class="table-panel">
+          <div class="table-header">
+            <span class="table-title">最近推薦事件</span>
+            <span class="badge badge-cyan">即時更新</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>時間</th><th>事件</th><th>用戶</th><th>狀態</th><th>佣金</th>
+              </tr>
+            </thead>
+            <tbody id="events-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: REFERRAL -->
+      <div class="dash-tab" id="tab-referral">
+        <h1 class="dash-page-title">推薦連結管理</h1>
+        <p class="dash-page-sub">分享你的專屬連結，每成功推薦一位訂閱用戶，賺取 20% 持續性佣金</p>
+
+        <div class="ref-panel">
+          <div class="ref-panel-title">你的專屬推薦連結</div>
+          <div class="ref-panel-sub">任何人透過此連結進入並在 7 天內完成訂閱，都會計入你的推薦紀錄</div>
+          <div class="ref-link-box">
+            <input class="ref-link-input" type="text" id="ref-link-display" value="https://replyai.tw/signup?ref=demo_creator" readonly/>
+            <button class="btn btn-dark" onclick="copyRefLink()"><span class="btn-label">複製連結</span></button>
+            <button class="btn btn-outline" onclick="shareRefLink()"><span class="btn-label">分享</span></button>
+          </div>
+          <div class="cookie-status-row" id="cookie-active-row">
+            <span class="cookie-status-dot"></span>
+            <span id="cookie-active-text">Cookie 追蹤已啟用 · 有效期限 7 天 · 目前追蹤中 3 位訪客</span>
+          </div>
+        </div>
+
+        <div class="how-steps">
+          <div class="how-step">
+            <div class="how-step-num">01</div>
+            <div class="how-step-title">分享推薦連結</div>
+            <div class="how-step-desc">在 Threads、IG 或 Line 社群分享你的專屬連結</div>
+          </div>
+          <div class="how-step">
+            <div class="how-step-num">02</div>
+            <div class="how-step-title">7 天 Cookie 追蹤</div>
+            <div class="how-step-desc">訪客點擊後，系統自動植入 7 天追蹤 Cookie，即使晚點購買也算數</div>
+          </div>
+          <div class="how-step">
+            <div class="how-step-num">03</div>
+            <div class="how-step-title">每月自動結算</div>
+            <div class="how-step-desc">每月 1 日自動結算，達 NT$500 以上即可申請提領</div>
+          </div>
+        </div>
+
+        <div class="table-panel">
+          <div class="table-header"><span class="table-title">點擊與轉換明細</span></div>
+          <table>
+            <thead>
+              <tr><th>時間</th><th>來源</th><th>狀態</th><th>Cookie 剩餘</th><th>佣金</th></tr>
+            </thead>
+            <tbody id="ref-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: EARNINGS -->
+      <div class="dash-tab" id="tab-earnings">
+        <h1 class="dash-page-title">收益明細</h1>
+        <p class="dash-page-sub">所有推薦佣金詳細記錄（佣金率 20%）</p>
+
+        <div class="commission-breakdown" id="commission-list"></div>
+
+        <div class="ref-panel" style="margin-top:24px">
+          <div class="ref-panel-title">申請提領</div>
+          <div class="ref-panel-sub">可提領餘額：<strong style="color:var(--cyan);font-size:20px">NT$3,120</strong>（最低 NT$500）</div>
+          <div style="display:flex;gap:10px;margin-top:16px">
+            <button class="btn btn-dark" onclick="showToast('提領申請已送出，3-5 個工作日內匯款','✅')">
+              <span class="btn-label">申請提領 NT$3,120</span>
+            </button>
+            <button class="btn btn-outline" onclick="showToast('歷史紀錄功能即將上線','ℹ️')">查看歷史</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: COOKIES -->
+      <div class="dash-tab" id="tab-cookies">
+        <h1 class="dash-page-title">Cookie 追蹤狀態</h1>
+        <p class="dash-page-sub">即時查看 7 天推薦 Cookie 的追蹤狀態與歸因結果</p>
+
+        <div class="ref-panel">
+          <div class="ref-panel-title">7 天追蹤機制說明</div>
+          <div class="ref-panel-sub" style="margin-bottom:20px">
+            當用戶點擊你的推薦連結，系統在其瀏覽器植入一個 7 天有效的 Cookie（<code style="background:var(--l-bg3);padding:2px 6px;border-radius:4px;font-size:12px">replyai_ref=demo_creator</code>）。
+            只要在 7 天內完成訂閱，無論中間有沒有重新訪問，都自動歸入你的推薦名下，類似蝦皮的分潤追蹤機制。
+          </div>
+          <div class="cookie-timeline" id="cookie-timeline-demo"></div>
+        </div>
+
+        <div class="table-panel">
+          <div class="table-header">
+            <span class="table-title">目前活躍 Cookie</span>
+            <span class="badge badge-success">3 個追蹤中</span>
+          </div>
+          <table>
+            <thead>
+              <tr><th>訪客 ID</th><th>點擊時間</th><th>到期時間</th><th>狀態</th></tr>
+            </thead>
+            <tbody id="active-cookies-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: ACCOUNTS -->
+      <div class="dash-tab" id="tab-accounts">
+        <h1 class="dash-page-title">帳號托管管理</h1>
+        <p class="dash-page-sub">連結你的 IG / Threads 帳號，ReplyAI 24小時負責回覆、發文與互動</p>
+
+        <div class="account-cards" id="account-cards-grid">
+          <!-- 已連結帳號 by JS -->
+        </div>
+
+        <div class="ref-panel">
+          <div class="ref-panel-title">🤖 自動任務設定</div>
+          <div class="ref-panel-sub" style="margin-bottom:20px">為每個托管帳號設定 AI 自動執行的日常任務</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px" id="task-toggles">
+            <!-- injected by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: SCHEDULE -->
+      <div class="dash-tab" id="tab-schedule">
+        <h1 class="dash-page-title">發文排程管理</h1>
+        <p class="dash-page-sub">視覺化管理本週所有排程貼文，AI 自動在最佳時間發布</p>
+
+        <div class="schedule-legend">
+          <div class="schedule-legend-item"><span class="schedule-legend-dot" style="background:#ec4899"></span>Instagram</div>
+          <div class="schedule-legend-item"><span class="schedule-legend-dot" style="background:#000"></span>Threads</div>
+          <div class="schedule-legend-item"><span class="schedule-legend-dot" style="background:var(--purple)"></span>輪播圖</div>
+        </div>
+
+        <div class="schedule-grid" id="schedule-week-grid"><!-- injected --></div>
+
+        <div class="table-title" style="margin-bottom:14px;font-size:16px;font-weight:700;color:var(--l-text)">📋 排程佇列</div>
+        <div class="task-queue" id="task-queue-list"><!-- injected --></div>
+
+        <div style="margin-top:20px">
+          <button class="btn btn-dark" onclick="openScheduleModal()">
+            <span class="btn-label">＋ 新增排程貼文</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB: AI POST GENERATOR -->
+      <div class="dash-tab" id="tab-aipost">
+        <h1 class="dash-page-title">AI 發文生成器</h1>
+        <p class="dash-page-sub">輸入主題與品牌語氣，AI 立即幫你寫出可發布的社群貼文</p>
+
+        <div class="ai-post-layout" id="ai-post-layout">
+          <!-- LEFT: FORM -->
+          <div class="ai-post-form">
+            <div class="field-group">
+              <label class="field-label">發文主題 / 關鍵字</label>
+              <input class="field-input" id="post-topic" placeholder="例：秋冬新品上市、保養品推薦、咖啡廳新開幕…"/>
+            </div>
+            <div class="field-group">
+              <label class="field-label">發文平台</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--l-text)">
+                  <input type="checkbox" id="plat-threads" checked style="accent-color:var(--cyan)"> Threads
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--l-text)">
+                  <input type="checkbox" id="plat-ig" style="accent-color:var(--cyan)"> Instagram
+                </label>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">語氣風格</label>
+              <select class="field-select" id="post-tone">
+                <option value="friendly">親切友善 😊</option>
+                <option value="pro">專業正式 💼</option>
+                <option value="hype">熱情活力 🔥</option>
+                <option value="story">說故事型 📖</option>
+                <option value="funny">輕鬆幽默 😂</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">附加功能</label>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--l-text)">
+                  <input type="checkbox" id="opt-hashtag" checked style="accent-color:var(--cyan)">加入 #hashtag 標籤
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--l-text)">
+                  <input type="checkbox" id="opt-cta" checked style="accent-color:var(--cyan)">加入 Call to Action
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--l-text)">
+                  <input type="checkbox" id="opt-emoji" checked style="accent-color:var(--cyan)">加入 Emoji
+                </label>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">品牌補充資訊 <span style="color:var(--l-muted);font-weight:400">(選填)</span></label>
+              <textarea class="field-textarea" id="post-brand" placeholder="例：我們是台灣手工皂品牌，主打天然無毒，客群為 25-40 歲女性…" style="min-height:70px"></textarea>
+            </div>
+            <button class="btn btn-dark" style="width:100%" onclick="generatePost()">
+              <span class="btn-label">⚡ 生成發文內容</span>
+            </button>
+          </div>
+
+          <!-- RIGHT: PREVIEW -->
+          <div class="ai-post-preview" id="post-preview-panel">
+            <div class="post-preview-empty" id="post-preview-empty">
+              <div class="post-preview-empty-icon">✍️</div>
+              <div style="font-weight:600;font-size:15px;color:var(--l-text)">還沒有生成內容</div>
+              <div style="font-size:13px">填寫左側表單，點擊生成按鈕</div>
+            </div>
+            <div id="post-preview-result" style="display:none;flex-direction:column;gap:14px;flex:1">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:13px;font-weight:700;color:var(--l-text)">生成結果</span>
+                <div style="display:flex;gap:6px">
+                  <span class="badge badge-success" id="post-platform-badge">Threads</span>
+                  <span class="badge badge-purple" id="post-tone-badge">親切友善</span>
+                </div>
+              </div>
+              <div class="post-preview-bubble" id="post-preview-text"></div>
+              <div class="char-counter" id="post-char-count"></div>
+              <div class="post-preview-actions">
+                <button class="btn btn-dark btn-sm" onclick="copyPost()"><span class="btn-label">複製文案</span></button>
+                <button class="btn btn-outline btn-sm" onclick="generatePost()"><span class="btn-label">重新生成</span></button>
+                <button class="btn btn-outline btn-sm" onclick="sendToSchedule()"><span class="btn-label">加入排程</span></button>
+              </div>
+              <!-- 多版本 -->
+              <div style="border-top:1px solid var(--l-border);padding-top:14px">
+                <div style="font-size:13px;font-weight:700;color:var(--l-text);margin-bottom:10px">其他版本</div>
+                <div id="post-variants" style="display:flex;flex-direction:column;gap:8px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: CAROUSEL GENERATOR -->
+      <div class="dash-tab" id="tab-carousel">
+        <h1 class="dash-page-title">輪播圖生成器</h1>
+        <p class="dash-page-sub">一次生成多張帶主題文案的圖卡，適合 IG 輪播貼文與 Threads 系列圖</p>
+
+        <div class="carousel-layout" id="carousel-layout">
+          <!-- LEFT: SETTINGS -->
+          <div class="carousel-form">
+            <div class="field-group">
+              <label class="field-label">輪播主題</label>
+              <input class="field-input" id="carousel-topic" placeholder="例：5個保養秘訣、創業心法、產品亮點介紹…"/>
+            </div>
+            <div class="field-group">
+              <label class="field-label">張數</label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input class="slide-count-input" type="number" id="slide-count" value="5" min="3" max="10"/>
+                <span style="font-size:13px;color:var(--l-muted)">張（建議 4–8 張）</span>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">圖卡主題色</label>
+              <div class="slide-themes" id="slide-theme-picker">
+                <div class="slide-theme-chip selected" data-theme="ocean" onclick="pickTheme(this)">🌊 深海藍</div>
+                <div class="slide-theme-chip" data-theme="sunset" onclick="pickTheme(this)">🌅 夕陽橙</div>
+                <div class="slide-theme-chip" data-theme="forest" onclick="pickTheme(this)">🌿 森林綠</div>
+                <div class="slide-theme-chip" data-theme="midnight" onclick="pickTheme(this)">🌙 午夜黑</div>
+                <div class="slide-theme-chip" data-theme="rose" onclick="pickTheme(this)">🌸 玫瑰粉</div>
+                <div class="slide-theme-chip" data-theme="purple" onclick="pickTheme(this)">💜 紫霧</div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">品牌名稱</label>
+              <input class="field-input" id="carousel-brand" placeholder="例：美好生活工作室"/>
+            </div>
+            <div class="field-group">
+              <label class="field-label">加入 CTA 結尾頁</label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--l-text)">
+                <input type="checkbox" id="carousel-cta" checked style="accent-color:var(--cyan)">最後一張加入「追蹤 / 購買」號召頁
+              </label>
+            </div>
+            <button class="btn btn-dark" style="width:100%" onclick="generateCarousel()">
+              <span class="btn-label">🎠 生成輪播圖</span>
+            </button>
+          </div>
+
+          <!-- RIGHT: PREVIEW -->
+          <div class="carousel-preview">
+            <div class="carousel-empty" id="carousel-empty">
+              <div class="carousel-empty-icon">🎠</div>
+              <div style="font-weight:600;font-size:15px;color:var(--l-text)">還沒有生成圖卡</div>
+              <div style="font-size:13px">填寫主題後點擊生成</div>
+            </div>
+            <div id="carousel-result" style="display:none">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <div style="font-size:14px;font-weight:700;color:var(--l-text)" id="carousel-result-label">已生成 5 張圖卡</div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-outline btn-sm" onclick="generateCarousel()"><span class="btn-label">重新生成</span></button>
+                  <button class="btn btn-dark btn-sm" onclick="exportCarousel()"><span class="btn-label">匯出全部</span></button>
+                </div>
+              </div>
+              <div class="carousel-slides-wrap" id="carousel-slides-container"></div>
+              <!-- selected slide detail -->
+              <div id="carousel-slide-detail" style="margin-top:16px;display:none">
+                <div style="background:var(--l-bg2);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font-size:13px;font-weight:700;color:var(--l-text)">圖卡文案編輯</span>
+                    <button class="btn btn-outline btn-sm" onclick="applySlideEdit()"><span class="btn-label">套用修改</span></button>
+                  </div>
+                  <input class="field-input" id="slide-edit-title" placeholder="標題"/>
+                  <textarea class="field-textarea" id="slide-edit-body" placeholder="內文" style="min-height:60px"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: SETTINGS -->
+      <div class="dash-tab" id="tab-settings">
+        <h1 class="dash-page-title">帳號設定</h1>
+        <p class="dash-page-sub">管理你的個人資料、通知與 AI 品牌設定</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+          <div class="ref-panel">
+            <div class="ref-panel-title">個人資料</div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:16px">
+              <div class="field-group"><label class="field-label">顯示名稱</label><input class="field-input" value="Demo Creator"/></div>
+              <div class="field-group"><label class="field-label">電子郵件</label><input class="field-input" value="demo@replyai.tw"/></div>
+              <div class="field-group"><label class="field-label">品牌名稱</label><input class="field-input" placeholder="你的品牌名稱"/></div>
+              <button class="btn btn-dark btn-sm" onclick="showToast('個人資料已儲存 ✓','✅')" style="align-self:flex-start"><span class="btn-label">儲存變更</span></button>
+            </div>
+          </div>
+          <div class="ref-panel">
+            <div class="ref-panel-title">AI 品牌語氣設定</div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:16px">
+              <div class="field-group"><label class="field-label">品牌描述</label><textarea class="field-textarea" placeholder="描述你的品牌定位、目標客群…"></textarea></div>
+              <div class="field-group"><label class="field-label">禁用詞彙</label><input class="field-input" placeholder="用逗號分隔，例：便宜, 低價, 打折…"/></div>
+              <div class="field-group"><label class="field-label">預設語氣</label><select class="field-select"><option>親切友善</option><option>專業正式</option><option>熱情活力</option></select></div>
+              <button class="btn btn-dark btn-sm" onclick="showToast('AI 設定已儲存 ✓','✅')" style="align-self:flex-start"><span class="btn-label">儲存設定</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: THREADS SCAN -->
+      <div class="dash-tab" id="tab-threads-scan">
+        <h1 class="dash-page-title">Threads 海巡系統</h1>
+        <p class="dash-page-sub">搜尋 Threads 上含有關鍵字的貼文，AI 自動擬定回覆策略</p>
+
+        <!-- Search Control Panel -->
+        <div style="background:#fff;border:1px solid var(--l-border);border-radius:var(--radius-xl);padding:24px;margin-bottom:24px">
+          <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px">
+            <div>
+              <label style="font-size:13px;font-weight:600;color:var(--l-muted);display:block;margin-bottom:6px">搜尋關鍵字（可用逗號分隔多組）</label>
+              <input id="scan-keyword" class="field-input" placeholder="例如：保養、美妝、護膚品推薦" style="width:100%;padding:11px 14px;border:1.5px solid var(--l-border);border-radius:var(--radius);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--l-border)'"/>
+            </div>
+            <div style="display:flex;flex-direction:column;justify-content:flex-end">
+              <button class="btn btn-dark" onclick="runThreadsScan()" id="scan-btn" style="height:44px;padding:0 24px;white-space:nowrap">
+                <span class="btn-label">🔍 開始海巡</span>
+              </button>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--l-muted);display:block;margin-bottom:4px">回覆語氣</label>
+              <select id="scan-tone" style="padding:7px 12px;border:1.5px solid var(--l-border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;cursor:pointer">
+                <option value="friendly">親切友善</option>
+                <option value="pro">專業建議</option>
+                <option value="hype">熱情推薦</option>
+                <option value="question">引發互動</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--l-muted);display:block;margin-bottom:4px">搜尋範圍</label>
+              <select id="scan-range" style="padding:7px 12px;border:1.5px solid var(--l-border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;cursor:pointer">
+                <option value="24h">最近 24 小時</option>
+                <option value="3d">最近 3 天</option>
+                <option value="7d">最近 7 天</option>
+              </select>
+            </div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+              <div id="scan-status-dot" style="width:8px;height:8px;border-radius:50%;background:#e5e7eb"></div>
+              <span id="scan-status-text" style="font-size:12px;color:var(--l-muted)">待機中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div id="scan-stats-row" style="display:none;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+          <div style="background:#fff;border:1px solid var(--l-border);border-radius:var(--radius);padding:16px;text-align:center">
+            <div id="stat-found" style="font-size:28px;font-weight:800;color:var(--l-text)">0</div>
+            <div style="font-size:12px;color:var(--l-muted);margin-top:2px">找到貼文</div>
+          </div>
+          <div style="background:#fff;border:1px solid var(--l-border);border-radius:var(--radius);padding:16px;text-align:center">
+            <div id="stat-replied" style="font-size:28px;font-weight:800;color:var(--cyan)">0</div>
+            <div style="font-size:12px;color:var(--l-muted);margin-top:2px">已回覆</div>
+          </div>
+          <div style="background:#fff;border:1px solid var(--l-border);border-radius:var(--radius);padding:16px;text-align:center">
+            <div id="stat-pending" style="font-size:28px;font-weight:800;color:var(--purple)">0</div>
+            <div style="font-size:12px;color:var(--l-muted);margin-top:2px">待回覆</div>
+          </div>
+          <div style="background:#fff;border:1px solid var(--l-border);border-radius:var(--radius);padding:16px;text-align:center">
+            <div id="stat-rate" style="font-size:28px;font-weight:800;color:#10b981">0%</div>
+            <div style="font-size:12px;color:var(--l-muted);margin-top:2px">完成率</div>
+          </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div id="scan-action-bar" style="display:none;background:#fff;border:1px solid var(--l-border);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
+          <span id="scan-selected-count" style="font-size:13px;font-weight:600;color:var(--l-muted)">已選 0 則</span>
+          <button class="btn btn-dark btn-sm" onclick="replySelected()" style="padding:7px 16px">
+            <span class="btn-label">✅ 批次回覆選取</span>
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="selectAllPosts()" style="padding:7px 16px">
+            <span class="btn-label">全選</span>
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="clearSelection()" style="padding:7px 16px">
+            <span class="btn-label">清除選取</span>
+          </button>
+          <button class="btn btn-outline btn-sm" style="margin-left:auto;padding:7px 16px" onclick="replyAll()">
+            <span class="btn-label">🤖 一鍵全部 AI 回覆</span>
+          </button>
+        </div>
+
+        <!-- Results -->
+        <div id="scan-empty" style="text-align:center;padding:80px 24px;color:var(--l-muted)">
+          <div style="font-size:48px;margin-bottom:16px">🔍</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:8px">輸入關鍵字開始海巡</div>
+          <div style="font-size:14px">系統將自動搜尋 Threads 上含有關鍵字的貼文<br>並為每則貼文生成最適合的 AI 回覆</div>
+        </div>
+
+        <div id="scan-results" style="display:none;display:flex;flex-direction:column;gap:12px"></div>
+      </div>
+    </main>
+  </div>
+</div><!-- end page-dashboard -->
+
+<!-- CONNECT ACCOUNT MODAL -->
+<div class="modal-overlay" id="connect-modal" onclick="closeModalOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">連結社群帳號</div>
+      <button class="modal-close" onclick="closeModal('connect-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--l-muted)">選擇要連結的平台，ReplyAI 將以 OAuth 授權安全存取你的帳號</p>
+      <div class="platform-select-grid" id="platform-opts">
+        <div class="platform-opt selected" onclick="selectPlatform(this,'instagram')">
+          <svg class="platform-opt-icon" width="28" height="28" viewBox="0 0 24 24" fill="url(#ig-grad)"><defs><linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f09433"/><stop offset="25%" stop-color="#e6683c"/><stop offset="50%" stop-color="#dc2743"/><stop offset="75%" stop-color="#cc2366"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+          <div class="platform-opt-name">Instagram</div>
+          <div class="platform-opt-desc">自動回覆留言<br>排程發文</div>
+        </div>
+        <div class="platform-opt" onclick="selectPlatform(this,'threads')">
+          <svg class="platform-opt-icon" width="28" height="28" viewBox="0 0 24 24" fill="#000"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068c0-3.637.906-6.57 2.694-8.718C6.063 1.153 8.773 0 12.186 0c3.412 0 6.122 1.153 7.991 3.35 1.788 2.148 2.694 5.08 2.694 8.718s-.906 6.571-2.694 8.72C18.308 22.986 15.598 24 12.186 24zm5.49-12.387c-.157-1.6-1.073-2.733-2.703-3.367-.897-.343-1.885-.494-2.939-.45-.358.015-.714.05-1.065.106-.083-.67-.091-1.334-.023-1.98.161-1.532.885-2.483 2.015-2.665a2.8 2.8 0 0 1 .44-.035c.826 0 1.546.355 2.14 1.054l1.563-1.357C16.125 1.817 14.45.927 12.536.927c-.27 0-.543.018-.814.055-1.951.274-3.338 1.618-3.8 3.666-.268 1.19-.212 2.44.165 3.71a10.53 10.53 0 0 0-1.61.584c-1.658.79-2.58 2.09-2.58 3.66 0 .195.013.392.04.586.225 1.614 1.22 2.854 2.8 3.492.882.357 1.877.524 2.953.5.38-.009.76-.041 1.135-.096.1.726.106 1.448.02 2.147-.204 1.659-1.013 2.68-2.276 2.868a2.79 2.79 0 0 1-.412.03c-.885 0-1.653-.395-2.286-1.172l-1.54 1.382c.9 1.117 2.14 1.73 3.613 1.799.147.007.294.01.44.01 2.4 0 4.12-1.447 4.68-3.862.26-1.118.239-2.273-.062-3.43a9.2 9.2 0 0 0 1.06-.3c1.73-.633 2.707-1.887 2.874-3.626z"/></svg>
+          <div class="platform-opt-name">Threads</div>
+          <div class="platform-opt-desc">AI 自動回覆<br>關鍵字搜尋</div>
+        </div>
+        <div class="platform-opt" onclick="selectPlatform(this,'facebook')">
+          <svg class="platform-opt-icon" width="28" height="28" viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          <div class="platform-opt-name">Facebook</div>
+          <div class="platform-opt-desc">粉專管理<br>自動回覆</div>
+        </div>
+        <div class="platform-opt" onclick="selectPlatform(this,'tiktok')">
+          <svg class="platform-opt-icon" width="28" height="28" viewBox="0 0 24 24" fill="#000"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+          <div class="platform-opt-name">TikTok</div>
+          <div class="platform-opt-desc">短影音管理<br>留言回覆</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">帳號用戶名稱</label>
+        <input class="field-input" id="new-account-handle" placeholder="@your_username"/>
+      </div>
+      <button class="btn btn-dark" style="width:100%" onclick="connectAccount()">
+        <span class="btn-label">🔗 連結帳號（OAuth 授權）</span>
+      </button>
+      <p style="font-size:12px;color:var(--l-muted);text-align:center">
+        使用 OAuth 2.0 安全授權，ReplyAI 不儲存你的密碼。隨時可在設定中解除連結。
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ============================================================
+   STATE
+============================================================ */
+const STATE = {
+  accounts: [
+    { id:1, platform:'instagram', handle:'@brand_tw', name:'品牌官方', status:'active', todayReplies:42, scheduled:3, followers:'12.4K' },
+    { id:2, platform:'threads',   handle:'@brand_threads', name:'品牌Threads', status:'active', todayReplies:18, scheduled:1, followers:'3.2K' },
+  ],
+  selectedPlatform: 'instagram',
+  currentSlideIndex: null,
+  carouselSlides: [],
+  carouselTheme: 'ocean',
+  scheduledPosts: [
+    { id:1, time:'今天 10:00', platform:'ig', title:'秋冬新品開箱', type:'carousel', status:'scheduled' },
+    { id:2, time:'今天 14:30', platform:'threads', title:'品牌故事分享', type:'post', status:'scheduled' },
+    { id:3, time:'明天 09:00', platform:'ig', title:'限時優惠公告', type:'post', status:'draft' },
+    { id:4, time:'明天 16:00', platform:'carousel', title:'5個保養秘訣', type:'carousel', status:'scheduled' },
+    { id:5, time:'後天 11:00', platform:'threads', title:'用戶見證分享', type:'post', status:'scheduled' },
+  ],
+  taskToggles: [
+    { id:'auto-reply', label:'自動回覆留言', icon:'💬', desc:'AI 即時回覆所有留言', on:true },
+    { id:'keyword-scan', label:'關鍵字海巡', icon:'🔍', desc:'搜尋相關貼文自動留言', on:true },
+    { id:'auto-post', label:'自動排程發文', icon:'📅', desc:'依排程自動發布貼文', on:false },
+    { id:'dm-reply', label:'DM 自動回覆', icon:'✉️', desc:'私訊智能回覆', on:false },
+    { id:'story-reply', label:'限動互動回覆', icon:'⭕', desc:'Story 互動自動追蹤', on:false },
+    { id:'report', label:'每日報告', icon:'📊', desc:'每天寄送數據摘要', on:true },
+  ]
+};
+
+/* ============================================================
+   PAGE ROUTER
+============================================================ */
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Check referral cookie on any page load
+  captureReferralFromURL();
+
+  if (page === 'landing') {
+    document.getElementById('page-landing').classList.add('active');
+    window.scrollTo(0,0);
+  } else if (page === 'login') {
+    document.getElementById('page-login').classList.add('active');
+  } else if (page === 'dashboard') {
+    document.getElementById('page-dashboard').classList.add('active');
+    initDashboard();
+  }
+}
+
+/* ============================================================
+   REFERRAL COOKIE LOGIC (7-day, Shopee-style)
+============================================================ */
+function captureReferralFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if (ref) {
+    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `replyai_ref=${encodeURIComponent(ref)}; expires=${expires}; path=/; SameSite=Lax`;
+    showToast(`已透過推薦連結進入 (ref: ${ref})`, '🔗');
+  }
+}
+
+function getReferralCookie() {
+  const match = document.cookie.match(/replyai_ref=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function setReferralCookie(creatorId) {
+  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `replyai_ref=${encodeURIComponent(creatorId)}; expires=${expires}; path=/; SameSite=Lax`;
+}
+
+/* ============================================================
+   LOGIN
+============================================================ */
+function doLogin() {
+  const btn = document.querySelector('#page-login .btn-cyan');
+  if (btn) btn.classList.add('loading');
+  setTimeout(() => {
+    if (btn) btn.classList.remove('loading');
+    navigate('dashboard');
+    showToast('歡迎回來！已進入 Demo 模式', '👋');
+  }, 900);
+}
+
+/* ============================================================
+   NAVBAR
+============================================================ */
+(function() {
+  const nav = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY > 60;
+    nav.classList.toggle('scrolled', scrolled);
+    nav.classList.toggle('light', scrolled);
+  });
+})();
+
+/* Hamburger */
+document.getElementById('hamburger').addEventListener('click', () => {
+  showToast('行動版選單即將上線', 'ℹ️');
+});
+
+/* ============================================================
+   SCROLL REVEAL + COUNTER
+============================================================ */
+(function() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // Trigger counters inside this element
+        entry.target.querySelectorAll('.counter').forEach(animateCounter);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal, .reveal-up, .stagger').forEach(el => observer.observe(el));
+})();
+
+function animateCounter(el) {
+  if (el.dataset.animated) return;
+  el.dataset.animated = '1';
+  const to = parseInt(el.dataset.to);
+  const suffix = el.dataset.suffix || '';
+  let start = 0;
+  const duration = 1400;
+  const startTime = performance.now();
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const val = Math.round(eased * to);
+    el.textContent = (val >= 1000 ? val.toLocaleString() : val) + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================
+   FAQ
+============================================================ */
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+
+/* ============================================================
+   MINI CHART (features section)
+============================================================ */
+(function() {
+  const data = [40, 65, 55, 80, 70, 90, 75];
+  const container = document.getElementById('mini-chart');
+  if (!container) return;
+  data.forEach(h => {
+    const wrap = document.createElement('div');
+    wrap.className = 'analytics-bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'analytics-bar analytics-bar-a';
+    bar.style.height = h + 'px';
+    wrap.appendChild(bar);
+    container.appendChild(wrap);
+  });
+})();
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+function switchTab(tabId, navEl) {
+  document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.dash-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  navEl.classList.add('active');
+  if (tabId === 'accounts') renderAccounts();
+  if (tabId === 'schedule') renderSchedule();
+  if (tabId === 'aipost') { /* ready on load */ }
+  if (tabId === 'carousel') { /* ready on load */ }
+}
+
+const mockEvents = [
+  { time: '今天 14:32', event: '成功訂閱', user: 'user_***ab3', status: 'success', commission: 'NT$78' },
+  { time: '今天 11:18', event: '點擊連結', user: 'user_***x91', status: 'click', commission: '—' },
+  { time: '昨天 22:05', event: '成功訂閱', user: 'user_***k44', status: 'success', commission: 'NT$130' },
+  { time: '昨天 16:40', event: '點擊連結', user: 'user_***p72', status: 'click', commission: '—' },
+  { time: '2天前 09:11', event: '成功訂閱', user: 'user_***m29', status: 'success', commission: 'NT$78' },
+];
+
+const mockRefClicks = [
+  { time: '今天 14:30', source: 'Threads 貼文', status: '已轉換', cookieDays: '已到期', commission: 'NT$78' },
+  { time: '今天 11:15', source: 'IG Story', status: 'Cookie 中', cookieDays: '6 天', commission: '待定' },
+  { time: '昨天 22:00', source: 'Threads 貼文', status: '已轉換', cookieDays: '已到期', commission: 'NT$130' },
+  { time: '昨天 16:38', source: 'Line 社群', status: 'Cookie 中', cookieDays: '5 天', commission: '待定' },
+  { time: '2天前 09:08', source: 'IG 限動', status: '已轉換', cookieDays: '已到期', commission: 'NT$78' },
+];
+
+const mockCommissions = [
+  { plan: '專業版 (NT$650)', count: 4, rate: '20%', amount: 'NT$520' },
+  { plan: '基礎版 (NT$390)', count: 10, rate: '20%', amount: 'NT$780' },
+  { plan: '12月 累計', count: 47, rate: '20%', amount: 'NT$4,680' },
+];
+
+const mockCookies = [
+  { id: 'visitor_***xy7', clickTime: '今天 11:15', expiry: '7天後', status: '追蹤中' },
+  { id: 'visitor_***ab2', clickTime: '昨天 16:38', expiry: '6天後', status: '追蹤中' },
+  { id: 'visitor_***mn5', clickTime: '2天前 09:10', expiry: '5天後', status: '追蹤中' },
+];
+
+function initDashboard() {
+  // Events table
+  const evtBody = document.getElementById('events-table-body');
+  if (evtBody && !evtBody.innerHTML) {
+    evtBody.innerHTML = mockEvents.map(e => `
+      <tr>
+        <td style="color:var(--l-muted)">${e.time}</td>
+        <td><strong>${e.event}</strong></td>
+        <td style="font-family:monospace;font-size:13px">${e.user}</td>
+        <td><span class="badge ${e.status==='success'?'badge-success':'badge-cyan'}">${e.status==='success'?'✓ 成功':'👁 瀏覽'}</span></td>
+        <td style="font-weight:700;color:${e.commission==='—'?'var(--l-muted)':'#10b981'}">${e.commission}</td>
+      </tr>`).join('');
+  }
+
+  // Referral table
+  const refBody = document.getElementById('ref-table-body');
+  if (refBody && !refBody.innerHTML) {
+    refBody.innerHTML = mockRefClicks.map(r => `
+      <tr>
+        <td style="color:var(--l-muted)">${r.time}</td>
+        <td>${r.source}</td>
+        <td><span class="badge ${r.status==='已轉換'?'badge-success':'badge-cyan'}">${r.status}</span></td>
+        <td style="color:var(--l-muted)">${r.cookieDays}</td>
+        <td style="font-weight:700;color:${r.commission==='待定'?'var(--l-muted)':'#10b981'}">${r.commission}</td>
+      </tr>`).join('');
+  }
+
+  // Commission list
+  const commList = document.getElementById('commission-list');
+  if (commList && !commList.innerHTML) {
+    commList.innerHTML = mockCommissions.map((c,i) => `
+      <div class="comm-row">
+        <div>
+          <div class="comm-label">${c.plan}</div>
+          <div class="comm-sub">推薦 ${c.count} 人 × ${c.rate}</div>
+        </div>
+        <div class="comm-val ${i===2?'cyan':''}">${c.amount}</div>
+      </div>`).join('');
+  }
+
+  // Active cookies table
+  const cookieTable = document.getElementById('active-cookies-table');
+  if (cookieTable && !cookieTable.innerHTML) {
+    cookieTable.innerHTML = mockCookies.map(c => `
+      <tr>
+        <td style="font-family:monospace;font-size:13px">${c.id}</td>
+        <td style="color:var(--l-muted)">${c.clickTime}</td>
+        <td style="color:var(--l-muted)">${c.expiry}</td>
+        <td><span class="badge badge-success"><span class="badge-dot"></span>${c.status}</span></td>
+      </tr>`).join('');
+  }
+
+  // Cookie timeline
+  const timeline = document.getElementById('cookie-timeline-demo');
+  if (timeline && !timeline.innerHTML) {
+    const steps = [
+      { icon: '🔗', title: '用戶點擊推薦連結', detail: 'ref=demo_creator 識別成功', active: true },
+      { icon: '🍪', title: 'Cookie 寫入瀏覽器', detail: `到期：${new Date(Date.now()+7*24*3600*1000).toLocaleDateString('zh-TW')}`, active: true },
+      { icon: '🛒', title: '用戶在 7 天內訂閱', detail: '推薦歸因成立', active: true },
+      { icon: '💰', title: '佣金自動結算', detail: '20% × 方案金額', active: true },
+    ];
+    timeline.innerHTML = steps.map(s => `
+      <div class="cookie-evt">
+        <div class="cookie-evt-dot ${s.active?'active'}">${s.icon}</div>
+        <div class="cookie-evt-content">
+          <div class="cookie-evt-title">${s.title}</div>
+          <div class="cookie-evt-detail">${s.detail}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Main chart
+  const mainChart = document.getElementById('main-chart');
+  if (mainChart && !mainChart.innerHTML) {
+    const data = [
+      { label: '5/5',  c: 120, r: 8 },
+      { label: '5/12', c: 185, r: 12 },
+      { label: '5/19', c: 160, r: 10 },
+      { label: '5/26', c: 220, r: 18 },
+      { label: '6/2',  c: 195, r: 15 },
+      { label: '6/9',  c: 260, r: 22 },
+      { label: '6/16', c: 230, r: 20 },
+    ];
+    const maxC = Math.max(...data.map(d=>d.c));
+    mainChart.innerHTML = data.map(d => `
+      <div class="chart-bar-group">
+        <div class="chart-bar-pair">
+          <div class="chart-bar chart-bar-cyan" style="height:${(d.c/maxC)*130}px"></div>
+          <div class="chart-bar chart-bar-purple" style="height:${(d.r/maxC)*130}px"></div>
+        </div>
+        <div class="chart-bar-label">${d.label}</div>
+      </div>`).join('');
+  }
+
+  // Read browser cookie and show status
+  const existingRef = getReferralCookie();
+  if (existingRef) {
+    const el = document.getElementById('cookie-active-text');
+    if (el) el.textContent = `Cookie 追蹤中：ref=${existingRef} · 有效期 7 天`;
+  }
+
+  // Init scroll reveal for dashboard
+  document.querySelectorAll('#page-dashboard .stagger').forEach(el => {
+    el.classList.add('visible');
+  });
+
+  // Init new feature tabs on first dashboard load
+  renderAccounts();
+  renderSchedule();
+}
+
+/* ============================================================
+   ACCOUNTS TAB
+============================================================ */
+const PLATFORM_META = {
+  instagram: { icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="url(#ig2)"><defs><linearGradient id="ig2" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>`, bg:'linear-gradient(135deg,#f09433,#dc2743,#bc1888)', label:'Instagram' },
+  threads:   { icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068c0-3.637.906-6.57 2.694-8.718C6.063 1.153 8.773 0 12.186 0c3.412 0 6.122 1.153 7.991 3.35 1.788 2.148 2.694 5.08 2.694 8.718s-.906 6.571-2.694 8.72C18.308 22.986 15.598 24 12.186 24zm5.49-12.387c-.157-1.6-1.073-2.733-2.703-3.367-.897-.343-1.885-.494-2.939-.45-.358.015-.714.05-1.065.106-.083-.67-.091-1.334-.023-1.98.161-1.532.885-2.483 2.015-2.665a2.8 2.8 0 0 1 .44-.035c.826 0 1.546.355 2.14 1.054l1.563-1.357C16.125 1.817 14.45.927 12.536.927c-.27 0-.543.018-.814.055-1.951.274-3.338 1.618-3.8 3.666-.268 1.19-.212 2.44.165 3.71a10.53 10.53 0 0 0-1.61.584c-1.658.79-2.58 2.09-2.58 3.66 0 .195.013.392.04.586.225 1.614 1.22 2.854 2.8 3.492.882.357 1.877.524 2.953.5.38-.009.76-.041 1.135-.096.1.726.106 1.448.02 2.147-.204 1.659-1.013 2.68-2.276 2.868a2.79 2.79 0 0 1-.412.03c-.885 0-1.653-.395-2.286-1.172l-1.54 1.382c.9 1.117 2.14 1.73 3.613 1.799.147.007.294.01.44.01 2.4 0 4.12-1.447 4.68-3.862.26-1.118.239-2.273-.062-3.43a9.2 9.2 0 0 0 1.06-.3c1.73-.633 2.707-1.887 2.874-3.626z"/></svg>`, bg:'#0a0a0a', label:'Threads' },
+  facebook:  { icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`, bg:'#1877f2', label:'Facebook' },
+  tiktok:    { icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>`, bg:'#010101', label:'TikTok' },
+};
+
+function renderAccounts() {
+  const grid = document.getElementById('account-cards-grid');
+  if (!grid) return;
+  grid.innerHTML = STATE.accounts.map(acc => {
+    const pm = PLATFORM_META[acc.platform];
+    const statusLabel = acc.status==='active' ? '運作中' : acc.status==='paused' ? '已暫停' : '錯誤';
+    return `
+    <div class="account-card">
+      <div class="account-card-head">
+        <div class="account-platform-icon" style="background:${pm.bg}">${pm.icon}</div>
+        <div class="account-info">
+          <div class="account-name">${acc.name}</div>
+          <div class="account-handle">${acc.handle} · ${acc.followers} 粉絲</div>
+        </div>
+        <div class="account-status-dot ${acc.status}" title="${statusLabel}"></div>
+      </div>
+      <div class="account-stats-row">
+        <div class="account-stat-pill">
+          <div class="account-stat-pill-val">${acc.todayReplies}</div>
+          <div class="account-stat-pill-lbl">今日回覆</div>
+        </div>
+        <div class="account-stat-pill">
+          <div class="account-stat-pill-val">${acc.scheduled}</div>
+          <div class="account-stat-pill-lbl">待發貼文</div>
+        </div>
+      </div>
+      <div class="account-tasks">
+        <div class="account-task">
+          <span class="account-task-icon">💬</span>
+          <span class="account-task-label">AI 自動回覆</span>
+          <span class="account-task-badge task-on">運作中</span>
+        </div>
+        <div class="account-task">
+          <span class="account-task-icon">🔍</span>
+          <span class="account-task-label">關鍵字海巡</span>
+          <span class="account-task-badge task-on">運作中</span>
+        </div>
+        <div class="account-task">
+          <span class="account-task-icon">📅</span>
+          <span class="account-task-label">排程發文</span>
+          <span class="account-task-badge task-${acc.scheduled>0?'on':'off'}">${acc.scheduled>0?'已設定':'未設定'}</span>
+        </div>
+      </div>
+      <div class="account-card-actions">
+        <button class="btn btn-outline btn-sm" style="flex:1" onclick="showToast('帳號設定開啟中…','⚙️')"><span class="btn-label">設定</span></button>
+        <button class="btn btn-dark btn-sm" style="flex:1" onclick="showToast('${acc.handle} 任務已暫停','⏸️')"><span class="btn-label">${acc.status==='active'?'暫停':'啟動'}</span></button>
+      </div>
+    </div>`;
+  }).join('') + `
+  <div class="add-account-card" onclick="openModal('connect-modal')">
+    <div class="add-account-icon">＋</div>
+    <div class="add-account-label">連結新帳號</div>
+    <div class="add-account-sub">支援 IG、Threads、FB、TikTok</div>
+  </div>`;
+
+  // Task toggles
+  const tg = document.getElementById('task-toggles');
+  if (tg && !tg.innerHTML) {
+    tg.innerHTML = STATE.taskToggles.map(t => `
+      <div style="background:#fff;border:1px solid var(--l-border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:22px">${t.icon}</span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600;color:var(--l-text)">${t.label}</div>
+          <div style="font-size:12px;color:var(--l-muted)">${t.desc}</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;cursor:pointer">
+          <input type="checkbox" ${t.on?'checked':''} style="opacity:0;width:0;height:0" onchange="toggleTask('${t.id}',this.checked)">
+          <span style="position:absolute;inset:0;border-radius:12px;background:${t.on?'var(--cyan)':'var(--l-border)'};transition:background .2s;display:flex;align-items:center;padding:0 3px">
+            <span style="width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;transform:translateX(${t.on?'18px':'0'})"></span>
+          </span>
+        </label>
+      </div>`).join('');
+  }
+}
+
+function toggleTask(id, val) {
+  const t = STATE.taskToggles.find(x => x.id===id);
+  if (t) { t.on = val; showToast(`${t.label} 已${val?'開啟':'關閉'}`, val?'✅':'⏸️'); }
+}
+
+/* ============================================================
+   CONNECT ACCOUNT MODAL
+============================================================ */
+function selectPlatform(el, platform) {
+  document.querySelectorAll('#platform-opts .platform-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.selectedPlatform = platform;
+}
+
+function connectAccount() {
+  const handle = document.getElementById('new-account-handle').value.trim();
+  if (!handle) { showToast('請輸入帳號名稱', '❌'); return; }
+  const pm = PLATFORM_META[STATE.selectedPlatform];
+  const btn = document.querySelector('#connect-modal .btn-dark');
+  btn.classList.add('loading');
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    STATE.accounts.push({
+      id: Date.now(), platform: STATE.selectedPlatform,
+      handle: handle.startsWith('@') ? handle : '@'+handle,
+      name: pm.label + ' 帳號',
+      status: 'active', todayReplies: 0, scheduled: 0, followers: '0'
+    });
+    closeModal('connect-modal');
+    renderAccounts();
+    showToast(`${handle} 已成功連結！`, '✅');
+    document.getElementById('new-account-handle').value = '';
+  }, 1200);
+}
+
+/* ============================================================
+   SCHEDULE TAB
+============================================================ */
+function renderSchedule() {
+  const days = ['週一','週二','週三','週四','週五','週六','週日'];
+  const grid = document.getElementById('schedule-week-grid');
+  if (!grid) return;
+  grid.innerHTML = days.map((d,i) => {
+    const hasPosts = [0,1,3,4,6].includes(i);
+    const dots = hasPosts ? `
+      ${i===0||i===3||i===6?'<div class="schedule-post-dot ig"></div>':''}
+      ${i===1||i===4?'<div class="schedule-post-dot threads"></div>':''}
+      ${i===0||i===3?'<div class="schedule-post-dot carousel"></div>':''}
+    ` : '<div style="font-size:10px;color:var(--l-muted);text-align:center;padding:4px 0">—</div>';
+    return `
+    <div class="schedule-day" style="${i<=1?'border-color:var(--cyan);background:rgba(0,212,245,.03)':''}">
+      <div class="schedule-day-name">${d}${i===0?' <span style="color:var(--cyan)">今</span>':''}</div>
+      <div class="schedule-day-posts">${dots}</div>
+    </div>`;
+  }).join('');
+
+  const queue = document.getElementById('task-queue-list');
+  if (!queue) return;
+  const iconMap = { ig:'📸', threads:'🧵', carousel:'🎠' };
+  const colorMap = { ig:'#ec4899', threads:'#000', carousel:'var(--purple)' };
+  const statusMap = { scheduled:`<span class="badge badge-cyan">已排程</span>`, draft:`<span class="badge" style="background:var(--l-bg3);color:var(--l-muted)">草稿</span>` };
+  queue.innerHTML = STATE.scheduledPosts.map(p => `
+    <div class="task-queue-item">
+      <div class="task-queue-icon" style="background:${colorMap[p.platform]}1a">${iconMap[p.platform]}</div>
+      <div class="task-queue-info">
+        <div class="task-queue-title">${p.title}</div>
+        <div class="task-queue-meta">${p.time} · ${p.type==='carousel'?'輪播圖':'一般貼文'}</div>
+      </div>
+      <div class="task-queue-status">${statusMap[p.status]}</div>
+      <button class="btn btn-outline btn-sm" onclick="showToast('已開啟編輯器','✏️')"><span class="btn-label">編輯</span></button>
+      <button class="btn btn-ghost btn-sm" style="background:var(--l-bg2);color:var(--l-muted)" onclick="removeScheduledPost(${p.id})"><span class="btn-label">刪除</span></button>
+    </div>`).join('');
+}
+
+function removeScheduledPost(id) {
+  STATE.scheduledPosts = STATE.scheduledPosts.filter(p => p.id !== id);
+  renderSchedule();
+  showToast('排程已刪除','🗑️');
+}
+
+function openScheduleModal() {
+  const topic = prompt('輸入發文標題：');
+  if (!topic) return;
+  STATE.scheduledPosts.unshift({ id:Date.now(), time:'今天 '+new Date().getHours()+':00', platform:'ig', title:topic, type:'post', status:'draft' });
+  renderSchedule();
+  showToast('已加入排程草稿','📅');
+}
+
+/* ============================================================
+   AI POST GENERATOR
+============================================================ */
+const POST_TEMPLATES = {
+  friendly: [
+    `{emoji} {topic}大家都說好！\n\n老實說，我自己用了之後也超驚艷 😊 {brand}用心準備了這次的內容，希望能對大家有幫助！\n\n✨ 重點整理：\n• 品質真的有差\n• 價格合理划算\n• 使用體驗超棒\n\n你們有什麼想法嗎？快留言告訴我！👇\n\n{hashtags}`,
+    `嗨大家好！今天要跟大家分享{topic}💕\n\n這真的是我最近超愛的一件事，忍不住要跟大家推薦！{brand}每一個細節都超用心 🥰\n\n如果你也對這個有興趣，趕快點連結了解更多！\n\n{hashtags}`,
+  ],
+  pro: [
+    `關於{topic}，以下是重要資訊：\n\n📌 核心優勢\n• 專業品質把關\n• 完善售後服務\n• 具競爭力的市場定價\n\n{brand}致力為客戶提供最佳解決方案。如需進一步了解，歡迎透過官方管道洽詢。\n\n{hashtags}`,
+  ],
+  hype: [
+    `🔥🔥🔥 {topic} 來了！！！\n\n各位準備好了嗎？！這次真的超猛！！\n\n{brand}這次要讓所有人都震驚 💥\n\n⚡ 快速亮點：\n🎯 超強功能\n💎 頂級品質\n🚀 即刻體驗\n\n不跟上你就虧大了！！立刻行動👇\n\n{hashtags}`,
+  ],
+  story: [
+    `說個真實故事...\n\n那天我第一次接觸到{topic}，真的沒想到會改變我的想法 📖\n\n一開始我也是懷疑的，直到{brand}讓我看到了不同。\n\n現在回想起來，那個決定真的很值得。\n\n你有沒有類似的經歷？歡迎分享 💬\n\n{hashtags}`,
+  ],
+  funny: [
+    `當朋友問我{topic}怎麼樣 🤣\n\n我：「還好啦」（內心：我已經用了18次了）\n\n{brand}真的把我整個人搞定了 😭\n\nPO這篇只是為了幫大家省時間研究，不是因為我有多喜歡（謊言）\n\n反正你懂的，去試就對了 ➡️\n\n{hashtags}`,
+  ],
+};
+
+const HASHTAG_SETS = {
+  friendly: '#台灣 #生活推薦 #好物分享 #品牌推薦 #必買好物 #台灣品牌',
+  pro: '#品牌 #專業服務 #台灣品牌 #品質保證 #企業合作',
+  hype: '#新品上市 #限時優惠 #爆款 #必搶 #台灣 #品牌新品',
+  story: '#品牌故事 #真實分享 #生活態度 #台灣 #推薦',
+  funny: '#真實心得 #不業配 #台灣 #生活 #推薦好物',
+};
+
+const TONE_LABELS = { friendly:'親切友善', pro:'專業正式', hype:'熱情活力', story:'說故事型', funny:'輕鬆幽默' };
+const EMOJI_SET = ['✨','🌟','💫','🔥','💎','🎉','🌈','💕','⚡','🚀'];
+
+function generatePost() {
+  const topic = document.getElementById('post-topic').value.trim();
+  if (!topic) { showToast('請輸入發文主題', '❌'); return; }
+
+  const tone = document.getElementById('post-tone').value;
+  const useHashtag = document.getElementById('opt-hashtag').checked;
+  const useCta = document.getElementById('opt-cta').checked;
+  const useEmoji = document.getElementById('opt-emoji').checked;
+  const brand = document.getElementById('post-brand').value.trim() || '品牌';
+  const platIG = document.getElementById('plat-ig').checked;
+  const platThreads = document.getElementById('plat-threads').checked;
+
+  const btn = document.querySelector('#tab-aipost .btn-dark');
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+
+    const templates = POST_TEMPLATES[tone] || POST_TEMPLATES.friendly;
+    const template = templates[Math.floor(Math.random() * templates.length)];
+    const emoji = useEmoji ? EMOJI_SET[Math.floor(Math.random()*EMOJI_SET.length)] : '';
+    const hashtags = useHashtag ? HASHTAG_SETS[tone] : '';
+    const ctaLine = useCta ? '\n\n👉 點個追蹤，掌握最新動態！' : '';
+
+    let text = template
+      .replace(/{topic}/g, topic)
+      .replace(/{brand}/g, brand)
+      .replace(/{emoji}/g, emoji)
+      .replace(/{hashtags}/g, hashtags)
+      + ctaLine;
+
+    // Show result
+    document.getElementById('post-preview-empty').style.display = 'none';
+    const result = document.getElementById('post-preview-result');
+    result.style.display = 'flex';
+    document.getElementById('post-preview-text').textContent = text;
+    document.getElementById('post-char-count').textContent = `${text.length} 字元${text.length>500?' (建議 IG 貼文 < 2200 字)':''}`;
+    document.getElementById('post-platform-badge').textContent = [platThreads&&'Threads',platIG&&'IG'].filter(Boolean).join(' + ') || 'Threads';
+    document.getElementById('post-tone-badge').textContent = TONE_LABELS[tone];
+
+    // Variants (2 shorter versions)
+    const variants = document.getElementById('post-variants');
+    variants.innerHTML = [
+      `短版：${emoji} ${topic}！${brand}推薦，值得一試 🙌${useHashtag?' '+hashtags.split(' ').slice(0,3).join(' '):''}`,
+      `互動版：你覺得${topic}怎麼樣？💬 留言告訴我！${useHashtag?' '+hashtags.split(' ').slice(0,2).join(' '):''}`
+    ].map((v,i) => `
+      <div style="background:var(--l-bg2);border-radius:var(--radius);padding:12px 14px;font-size:13px;color:var(--l-text);line-height:1.6;cursor:pointer;border:1.5px solid transparent;transition:border-color .2s" onclick="useVariant(this)" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:10px;font-weight:700;color:var(--l-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">版本 ${i+2}</div>
+        ${v}
+      </div>`).join('');
+
+    showToast('AI 發文已生成！', '✍️');
+  }, 1100);
+}
+
+function useVariant(el) {
+  const text = el.textContent.replace(/版本 \d/,'').trim();
+  document.getElementById('post-preview-text').textContent = text;
+  document.getElementById('post-char-count').textContent = `${text.length} 字元`;
+  showToast('已切換為此版本', '✅');
+}
+
+function copyPost() {
+  const text = document.getElementById('post-preview-text').textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('文案已複製！', '📋'))
+    .catch(() => { /* fallback */ showToast('文案已複製！', '📋'); });
+}
+
+function sendToSchedule() {
+  const topic = document.getElementById('post-topic').value.trim() || '新貼文';
+  STATE.scheduledPosts.unshift({ id:Date.now(), time:'今天 '+new Date().getHours()+':00', platform:'ig', title:topic, type:'post', status:'draft' });
+  showToast('已加入排程草稿，前往「發文排程」查看', '📅');
+}
+
+/* ============================================================
+   CAROUSEL GENERATOR
+============================================================ */
+const CAROUSEL_THEMES = {
+  ocean:    { bg:'linear-gradient(135deg,#0f2460,#1a6b8a)', accent:'#00d4f5' },
+  sunset:   { bg:'linear-gradient(135deg,#8b1a1a,#d4541a,#f59e0b)', accent:'#fcd34d' },
+  forest:   { bg:'linear-gradient(135deg,#064e3b,#065f46,#047857)', accent:'#34d399' },
+  midnight: { bg:'linear-gradient(135deg,#0a0a0a,#1a1a2e,#16213e)', accent:'#7c3aed' },
+  rose:     { bg:'linear-gradient(135deg,#831843,#be185d,#db2777)', accent:'#f9a8d4' },
+  purple:   { bg:'linear-gradient(135deg,#2e1065,#4c1d95,#6d28d9)', accent:'#c4b5fd' },
+};
+
+function pickTheme(el) {
+  document.querySelectorAll('.slide-theme-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.carouselTheme = el.dataset.theme;
+}
+
+const SLIDE_CONTENT_TEMPLATES = {
+  intro:   { tag:'開場', title:'{topic}', body:'今天要跟大家分享一些關於{topic}的重要知識，讓我們一起來了解！' },
+  point1:  { tag:'重點 01', title:'第一個關鍵', body:'這是最多人忽略的一點，但卻是最重要的基礎，掌握了之後一切都會變得不同。' },
+  point2:  { tag:'重點 02', title:'你必須知道', body:'很多人在這個步驟卡住，其實只要掌握核心方法，就能輕鬆突破。' },
+  point3:  { tag:'重點 03', title:'進階技巧', body:'當你掌握了前兩點，這個進階技巧能讓你的效果再提升 3 倍。' },
+  point4:  { tag:'重點 04', title:'常見誤區', body:'90% 的人都在這裡犯錯！避開這個誤區，你就超越了大多數人。' },
+  insight: { tag:'深度洞察', title:'背後的原因', body:'為什麼{topic}這麼重要？理解背後的邏輯，才能真正掌握精髓。' },
+  action:  { tag:'立刻行動', title:'你該怎麼做？', body:'知識不行動等於零。從今天開始，試試看這些方法，你一定會有收穫！' },
+  cta:     { tag:'追蹤我們', title:'更多精彩內容', body:'喜歡這篇內容嗎？按讚追蹤，每週分享更多乾貨 🔥\n\n👇 點擊連結了解更多' },
+};
+
+function generateCarousel() {
+  const topic = document.getElementById('carousel-topic').value.trim();
+  if (!topic) { showToast('請輸入輪播主題', '❌'); return; }
+
+  const count = Math.min(10, Math.max(3, parseInt(document.getElementById('slide-count').value) || 5));
+  const brand = document.getElementById('carousel-brand').value.trim() || 'ReplyAI';
+  const addCta = document.getElementById('carousel-cta').checked;
+  const theme = CAROUSEL_THEMES[STATE.carouselTheme];
+
+  const btn = document.querySelector('#tab-carousel .btn-dark');
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+
+    // Build slide content
+    const keys = ['intro','point1','point2','point3','point4','insight','action'];
+    const slideKeys = keys.slice(0, addCta ? count-1 : count);
+    if (addCta) slideKeys.push('cta');
+
+    STATE.carouselSlides = slideKeys.map((key, i) => {
+      const tpl = SLIDE_CONTENT_TEMPLATES[key];
+      return {
+        index: i,
+        tag: tpl.tag,
+        title: tpl.title.replace('{topic}', topic),
+        body: tpl.body.replace(/{topic}/g, topic).replace('{brand}', brand),
+        theme, brand,
+        isCta: key==='cta',
+      };
+    });
+
+    document.getElementById('carousel-empty').style.display = 'none';
+    const result = document.getElementById('carousel-result');
+    result.style.display = 'block';
+    document.getElementById('carousel-result-label').textContent = `已生成 ${STATE.carouselSlides.length} 張圖卡 — 「${topic}」`;
+
+    renderCarouselSlides();
+    showToast(`已生成 ${STATE.carouselSlides.length} 張輪播圖卡！`, '🎠');
+  }, 1300);
+}
+
+function renderCarouselSlides() {
+  const container = document.getElementById('carousel-slides-container');
+  container.innerHTML = STATE.carouselSlides.map((slide, i) => `
+    <div class="carousel-slide" style="background:${slide.theme.bg}" onclick="selectSlide(${i})">
+      <div class="carousel-slide-accent" style="background:${slide.theme.accent};top:-20px;right:-20px"></div>
+      <div class="carousel-slide-num">${i+1}</div>
+      <div class="carousel-slide-tag">${slide.tag}</div>
+      <div class="carousel-slide-title">${slide.title}</div>
+      <div class="carousel-slide-body">${slide.body.substring(0,60)}${slide.body.length>60?'…':''}</div>
+      ${slide.isCta ? `<div style="margin-top:8px;padding:6px 12px;background:${slide.theme.accent};color:#000;border-radius:20px;font-size:11px;font-weight:700;display:inline-block">追蹤 ${slide.brand}</div>` : ''}
+    </div>`).join('');
+}
+
+function selectSlide(i) {
+  STATE.currentSlideIndex = i;
+  const slide = STATE.carouselSlides[i];
+  const detail = document.getElementById('carousel-slide-detail');
+  detail.style.display = 'block';
+  document.getElementById('slide-edit-title').value = slide.title;
+  document.getElementById('slide-edit-body').value = slide.body;
+  // Highlight selected
+  document.querySelectorAll('.carousel-slide').forEach((el,j) => {
+    el.style.outline = j===i ? `3px solid ${slide.theme.accent}` : 'none';
+    el.style.outlineOffset = '2px';
+  });
+}
+
+function applySlideEdit() {
+  if (STATE.currentSlideIndex === null) return;
+  const i = STATE.currentSlideIndex;
+  STATE.carouselSlides[i].title = document.getElementById('slide-edit-title').value;
+  STATE.carouselSlides[i].body = document.getElementById('slide-edit-body').value;
+  renderCarouselSlides();
+  showToast('圖卡內容已更新', '✅');
+  document.getElementById('carousel-slide-detail').style.display = 'none';
+  STATE.currentSlideIndex = null;
+}
+
+function exportCarousel() {
+  showToast('圖卡匯出功能（PNG / PDF）即將上線，敬請期待！', 'ℹ️');
+}
+
+/* ============================================================
+   MODAL HELPERS
+============================================================ */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOnOverlay(e) { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); }
+
+/* ============================================================
+   THREADS 海巡 FEATURE
+============================================================ */
+const SCAN_STATE = {
+  posts: [],
+  selected: new Set(),
+  repliedIds: new Set(),
+  keyword: ''
+};
+
+const FAKE_USERS = [
+  { name:'lisa_beauty_tw', avatar:'L', color:'#ec4899' },
+  { name:'max_lifestyle', avatar:'M', color:'#8b5cf6' },
+  { name:'jenny.eats', avatar:'J', color:'#f59e0b' },
+  { name:'kevin_fitness', avatar:'K', color:'#10b981' },
+  { name:'anna_travel', avatar:'A', color:'#3b82f6' },
+  { name:'david.photo', avatar:'D', color:'#ef4444' },
+  { name:'sarah_foodie', avatar:'S', color:'#6366f1' },
+  { name:'tom_tech', avatar:'T', color:'#14b8a6' },
+  { name:'nina_fashion', avatar:'N', color:'#f43f5e' },
+  { name:'eric_startup', avatar:'E', color:'#84cc16' },
+  { name:'yuki_art', avatar:'Y', color:'#a855f7' },
+  { name:'mike_coffee', avatar:'M', color:'#92400e' },
+];
+
+const SCAN_POST_TEMPLATES = [
+  '最近在研究{keyword}，有沒有人推薦比較好的選擇？真的不知道從哪裡下手 😅',
+  '買了一堆{keyword}的東西，但感覺效果都差不多，求推薦！',
+  '有在用{keyword}相關的嗎？想知道大家的使用心得',
+  '{keyword}真的有差嗎？還是只是行銷？希望有人可以給我誠實評價',
+  '朋友推薦我試試{keyword}，有人用過嗎？效果好嗎？',
+  '最近開始研究{keyword}，發現好多品牌不知道怎麼選 🤔 求助！',
+  '用了{keyword}兩個禮拜，感覺有點效果但不確定…有人有同樣經驗嗎',
+  '請問{keyword}這類的東西，大概要花多少預算才夠用？',
+  '第一次嘗試{keyword}，有沒有入門推薦？ありがとう',
+  '看到很多人在推{keyword}，到底值不值得買？想聽真實心得',
+  '{keyword}的選擇超多讓我頭很大，可以幫我縮小範圍嗎？',
+  '大家都說{keyword}很重要，但我完全搞不清楚從哪開始 😭',
+];
+
+const REPLY_TEMPLATES = {
+  friendly: [
+    '嗨！關於{keyword}我可以分享一些心得～我們家的{keyword}方案真的用了很久，效果很不錯！如果有興趣可以私訊我或點連結了解更多 😊',
+    '哈哈你來問對人了！{keyword}這塊我研究很久，簡單說就是要找有保障的選擇。我在用的這個超推薦，歡迎私聊！',
+    '看到你在問{keyword}覺得好有緣！我之前也是一樣的問題，後來找到超適合的解決方案，效果很好！可以分享給你 ✨',
+  ],
+  pro: [
+    '關於{keyword}的選擇，建議從幾個核心指標來評估：品質認證、使用者口碑、售後服務。歡迎私訊進一步討論！',
+    '{keyword}確實有很多選項，差異主要在效果穩定性與服務品質。我可以提供更詳細的比較，有需要可以聯繫。',
+    '好問題！{keyword}的關鍵在於找到真正適合自己需求的方案。建議先了解自己的需求，再對症下藥。需要協助歡迎私訊 📩',
+  ],
+  hype: [
+    '天啊你終於問了！！{keyword}這個不試真的虧很大！！我用了之後整個大滿意，超推超推！！快來了解 🔥🔥',
+    '就是你了！！！{keyword}真的是我用過最厲害的！效果完全不誇張！不相信的話試試看就知道 💥',
+    '啊啊啊！！{keyword}的好你問對人了！我已經瘋狂推薦給所有人了因為真的太好用！不要再猶豫直接衝！！🚀',
+  ],
+  question: [
+    '你對{keyword}的期望是什麼呢？是想要快速見效還是長期效果？了解你的需求才能給最準確的建議！',
+    '有趣的問題！你之前有嘗試過相關的{keyword}方案嗎？還是完全是新手？這樣才知道要從哪個角度建議你 😊',
+    '想更了解你的狀況！你說的{keyword}主要是用在哪個方面呢？不同需求有不同的最佳選擇！',
+  ],
+};
+
+function getKeywords() {
+  return document.getElementById('scan-keyword').value
+    .split(/[,，\s]+/).map(k => k.trim()).filter(Boolean);
+}
+
+function highlightKeywords(text, keywords) {
+  let result = text;
+  keywords.forEach(kw => {
+    if (!kw) return;
+    const regex = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+    result = result.replace(regex, m => `<span class="scan-post-keyword-match">${m}</span>`);
+  });
+  return result;
+}
+
+function generateReply(keyword, tone) {
+  const toneMap = REPLY_TEMPLATES[tone] || REPLY_TEMPLATES.friendly;
+  const tmpl = toneMap[Math.floor(Math.random() * toneMap.length)];
+  return tmpl.replace(/{keyword}/g, keyword);
+}
+
+function runThreadsScan() {
+  const keywords = getKeywords();
+  if (keywords.length === 0) { showToast('請輸入至少一個關鍵字', '❌'); return; }
+
+  SCAN_STATE.keyword = keywords[0];
+  SCAN_STATE.selected.clear();
+  SCAN_STATE.posts = [];
+
+  const btn = document.getElementById('scan-btn');
+  btn.classList.add('loading');
+  const dot = document.getElementById('scan-status-dot');
+  const statusText = document.getElementById('scan-status-text');
+  dot.style.background = 'var(--cyan)';
+  statusText.textContent = '海巡中…';
+
+  // Simulate scanning with progressive loading
+  const totalPosts = 8 + Math.floor(Math.random() * 7); // 8-14 posts
+  const tone = document.getElementById('scan-tone').value;
+
+  setTimeout(() => {
+    statusText.textContent = `找到 ${totalPosts} 則相關貼文`;
+    dot.style.background = '#10b981';
+    btn.classList.remove('loading');
+
+    // Build posts
+    const shuffledUsers = [...FAKE_USERS].sort(() => Math.random() - 0.5);
+    SCAN_STATE.posts = Array.from({length: totalPosts}, (_, i) => {
+      const user = shuffledUsers[i % shuffledUsers.length];
+      const kw = keywords[Math.floor(Math.random() * keywords.length)];
+      const tmpl = SCAN_POST_TEMPLATES[Math.floor(Math.random() * SCAN_POST_TEMPLATES.length)];
+      const minutesAgo = Math.floor(Math.random() * 1440);
+      const timeStr = minutesAgo < 60 ? `${minutesAgo} 分鐘前` : minutesAgo < 1440 ? `${Math.floor(minutesAgo/60)} 小時前` : '昨天';
+      return {
+        id: Date.now() + i,
+        username: user.name,
+        avatar: user.avatar,
+        color: user.color,
+        content: tmpl.replace(/{keyword}/g, kw),
+        time: timeStr,
+        likes: Math.floor(Math.random() * 120),
+        replies: Math.floor(Math.random() * 30),
+        keyword: kw,
+        suggestedReply: generateReply(kw, tone),
+        replied: false,
+      };
+    });
+
+    renderScanResults(keywords);
+    updateScanStats();
+    showToast(`海巡完成！找到 ${totalPosts} 則相關貼文`, '🎯');
+  }, 1800);
+}
+
+function renderScanResults(keywords) {
+  const empty = document.getElementById('scan-empty');
+  const results = document.getElementById('scan-results');
+  const statsRow = document.getElementById('scan-stats-row');
+  const actionBar = document.getElementById('scan-action-bar');
+
+  empty.style.display = 'none';
+  results.style.display = 'flex';
+  statsRow.style.display = 'grid';
+  actionBar.style.display = 'flex';
+
+  results.innerHTML = SCAN_STATE.posts.map(post => {
+    const isSelected = SCAN_STATE.selected.has(post.id);
+    const isReplied = post.replied;
+    return `
+    <div class="scan-post-card ${isSelected?'selected':''} ${isReplied?'replied':''}" id="post-card-${post.id}">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <label style="margin-top:2px;cursor:pointer">
+          <input type="checkbox" ${isSelected?'checked':''} ${isReplied?'disabled':''} style="width:16px;height:16px;accent-color:var(--cyan);cursor:pointer" onchange="togglePostSelect(${post.id},this.checked)">
+        </label>
+        <div style="flex:1">
+          <div class="scan-post-header">
+            <div class="scan-post-avatar" style="background:${post.color}">${post.avatar}</div>
+            <div class="scan-post-meta">
+              <div class="scan-post-username">@${post.username}</div>
+              <div class="scan-post-time">${post.time}</div>
+            </div>
+            <span class="scan-post-platform-badge">Threads</span>
+            ${isReplied ? '<span class="scan-replied-badge">✓ 已回覆</span>' : ''}
+          </div>
+          <div class="scan-post-content">${highlightKeywords(post.content, keywords||[SCAN_STATE.keyword])}</div>
+          <div class="scan-post-stats">
+            <span>❤️ ${post.likes}</span>
+            <span>💬 ${post.replies}</span>
+            <span>關鍵字：<strong>${post.keyword}</strong></span>
+          </div>
+          ${!isReplied ? `
+          <div class="scan-post-reply-area">
+            <div class="scan-post-reply-label">AI 建議回覆</div>
+            <div class="scan-post-reply-text" id="reply-text-${post.id}" contenteditable="true" style="outline:none;border-radius:6px;padding:4px;transition:background .2s" onfocus="this.style.background='rgba(0,212,245,.05)'" onblur="this.style.background='transparent'">${post.suggestedReply}</div>
+            <div class="scan-post-actions">
+              <button class="btn btn-dark btn-sm" onclick="sendReply(${post.id})" style="padding:7px 16px">
+                <span class="btn-label">✅ 送出回覆</span>
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="regenerateReply(${post.id})" style="padding:7px 14px">
+                <span class="btn-label">🔄 重新生成</span>
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="skipPost(${post.id})" style="padding:7px 14px">
+                <span class="btn-label">跳過</span>
+              </button>
+            </div>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePostSelect(id, checked) {
+  if (checked) SCAN_STATE.selected.add(id);
+  else SCAN_STATE.selected.delete(id);
+  const card = document.getElementById('post-card-' + id);
+  if (card) card.classList.toggle('selected', checked);
+  document.getElementById('scan-selected-count').textContent = `已選 ${SCAN_STATE.selected.size} 則`;
+}
+
+function selectAllPosts() {
+  SCAN_STATE.posts.filter(p => !p.replied).forEach(p => SCAN_STATE.selected.add(p.id));
+  renderScanResults(getKeywords());
+  updateScanStats();
+}
+
+function clearSelection() {
+  SCAN_STATE.selected.clear();
+  renderScanResults(getKeywords());
+  updateScanStats();
+}
+
+function sendReply(id) {
+  const post = SCAN_STATE.posts.find(p => p.id === id);
+  if (!post) return;
+  const replyEl = document.getElementById('reply-text-' + id);
+  const replyText = replyEl ? replyEl.textContent.trim() : post.suggestedReply;
+
+  post.replied = true;
+  SCAN_STATE.selected.delete(id);
+
+  const card = document.getElementById('post-card-' + id);
+  if (card) {
+    card.classList.remove('selected');
+    card.classList.add('replied');
+    const replyArea = card.querySelector('.scan-post-reply-area');
+    if (replyArea) replyArea.style.display = 'none';
+    const header = card.querySelector('.scan-post-header');
+    if (header && !header.querySelector('.scan-replied-badge')) {
+      header.insertAdjacentHTML('beforeend', '<span class="scan-replied-badge">✓ 已回覆</span>');
+    }
+  }
+
+  updateScanStats();
+  showToast(`已回覆 @${post.username}`, '✅');
+}
+
+function regenerateReply(id) {
+  const post = SCAN_STATE.posts.find(p => p.id === id);
+  if (!post) return;
+  const tone = document.getElementById('scan-tone').value;
+  post.suggestedReply = generateReply(post.keyword, tone);
+  const el = document.getElementById('reply-text-' + id);
+  if (el) {
+    el.style.opacity = '0';
+    setTimeout(() => { el.textContent = post.suggestedReply; el.style.opacity = '1'; }, 150);
+    el.style.transition = 'opacity .15s';
+  }
+  showToast('已重新生成回覆', '🔄');
+}
+
+function skipPost(id) {
+  const post = SCAN_STATE.posts.find(p => p.id === id);
+  if (!post) return;
+  post.replied = true;
+  const card = document.getElementById('post-card-' + id);
+  if (card) { card.style.opacity = '0.4'; card.style.pointerEvents = 'none'; }
+  updateScanStats();
+}
+
+function replySelected() {
+  if (SCAN_STATE.selected.size === 0) { showToast('請先選取要回覆的貼文', '❌'); return; }
+  const ids = [...SCAN_STATE.selected];
+  let count = 0;
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      sendReply(id);
+      count++;
+      if (count === ids.length) showToast(`批次回覆完成！共回覆 ${count} 則`, '🎉');
+    }, i * 400);
+  });
+}
+
+function replyAll() {
+  const unreplied = SCAN_STATE.posts.filter(p => !p.replied);
+  if (unreplied.length === 0) { showToast('所有貼文已回覆完畢！', '🎉'); return; }
+  showToast(`開始自動回覆 ${unreplied.length} 則貼文…`, '🤖');
+  unreplied.forEach((post, i) => {
+    setTimeout(() => sendReply(post.id), i * 600);
+  });
+}
+
+function updateScanStats() {
+  const total = SCAN_STATE.posts.length;
+  const replied = SCAN_STATE.posts.filter(p => p.replied).length;
+  const pending = total - replied;
+  const rate = total > 0 ? Math.round(replied/total*100) : 0;
+
+  const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+  el('stat-found', total);
+  el('stat-replied', replied);
+  el('stat-pending', pending);
+  el('stat-rate', rate + '%');
+  el('scan-selected-count', `已選 ${SCAN_STATE.selected.size} 則`);
+}
+
+/* ============================================================
+   REFERRAL LINK ACTIONS
+============================================================ */
+function copyRefLink() {
+  const input = document.getElementById('ref-link-display');
+  navigator.clipboard.writeText(input.value).then(() => {
+    showToast('推薦連結已複製！', '✅');
+    setReferralCookie('demo_creator');
+  }).catch(() => {
+    input.select();
+    document.execCommand('copy');
+    showToast('推薦連結已複製！', '✅');
+  });
+}
+
+function shareRefLink() {
+  const url = document.getElementById('ref-link-display').value;
+  if (navigator.share) {
+    navigator.share({ title: 'ReplyAI 推薦', text: '用這個連結註冊 ReplyAI，AI 幫你自動回留言！', url });
+  } else {
+    copyRefLink();
+  }
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+function showToast(msg, icon = '✅') {
+  const container = document.getElementById('toasts');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(24px)';
+    toast.style.transition = 'all .3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+captureReferralFromURL();
+</script>
+</body>
+</html>

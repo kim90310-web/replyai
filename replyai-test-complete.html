@@ -1895,12 +1895,16 @@ const STATE = {
 ============================================================ */
 function navigate(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  // Check referral cookie on any page load
   captureReferralFromURL();
 
   if (page === 'landing') {
-    document.getElementById('page-landing').classList.add('active');
+    const el = document.getElementById('page-landing');
+    el.classList.add('active');
     window.scrollTo(0,0);
+    // Force all scroll-reveal elements visible so nothing stays hidden
+    setTimeout(() => {
+      el.querySelectorAll('.reveal, .reveal-up, .stagger').forEach(e => e.classList.add('visible'));
+    }, 50);
   } else if (page === 'login') {
     document.getElementById('page-login').classList.add('active');
   } else if (page === 'dashboard') {
@@ -1978,6 +1982,11 @@ document.getElementById('hamburger').addEventListener('click', () => {
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
   document.querySelectorAll('.reveal, .reveal-up, .stagger').forEach(el => observer.observe(el));
+
+  // Force all elements in landing page visible immediately (don't wait for scroll)
+  setTimeout(() => {
+    document.querySelectorAll('#page-landing .reveal, #page-landing .reveal-up, #page-landing .stagger').forEach(el => el.classList.add('visible'));
+  }, 100);
 })();
 
 function animateCounter(el) {

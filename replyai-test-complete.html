@@ -121,11 +121,13 @@ ul{list-style:none}
 /* ============================================================
    SCROLL REVEAL
 ============================================================ */
-.reveal{opacity:0;transform:translateY(28px);transition:opacity .65s var(--ease),transform .65s var(--ease)}
+.reveal{opacity:1;transform:none;transition:opacity .65s var(--ease),transform .65s var(--ease)}
+.reveal.animate-pending{opacity:0;transform:translateY(28px)}
 .reveal.visible{opacity:1;transform:none}
-.reveal-up{opacity:0;transform:translateY(40px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal-up{opacity:1;transform:none;transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal-up.animate-pending{opacity:0;transform:translateY(40px)}
 .reveal-up.visible{opacity:1;transform:none}
-.stagger>*{opacity:0;transform:translateY(20px);transition:opacity .55s var(--ease),transform .55s var(--ease)}
+.stagger>*{opacity:1;transform:none;transition:opacity .55s var(--ease),transform .55s var(--ease)}
 .stagger.visible>*:nth-child(1){opacity:1;transform:none;transition-delay:0s}
 .stagger.visible>*:nth-child(2){opacity:1;transform:none;transition-delay:.08s}
 .stagger.visible>*:nth-child(3){opacity:1;transform:none;transition-delay:.16s}
@@ -1181,17 +1183,150 @@ tr:hover td{background:var(--l-bg2)}
     </div>
   </section>
 
+  <!-- TESTIMONIALS -->
+  <section id="testimonials" style="background:var(--d-bg);padding:96px 0;overflow:hidden">
+    <div class="container">
+      <div class="features-header" style="opacity:1;transform:none;text-align:center;margin-bottom:56px">
+        <p class="section-tag" style="color:var(--cyan)">用戶見證</p>
+        <h2 class="section-h2" style="color:#fff">超過 <em style="color:var(--cyan)">2,400+</em> 個台灣品牌<br>正在使用 ReplyAI</h2>
+        <p class="section-sub" style="color:rgba(255,255,255,.5)">從小型電商到知名品牌，他們都用 ReplyAI 自動化社群互動</p>
+      </div>
+
+      <!-- Rating Bar -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:32px;margin-bottom:56px;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div style="font-size:52px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.03em">4.9</div>
+          <div style="color:#fbbf24;font-size:20px;letter-spacing:2px;margin:4px 0">★★★★★</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.4)">平均評分</div>
+        </div>
+        <div style="width:1px;height:60px;background:rgba(255,255,255,.1)"></div>
+        <div style="text-align:center">
+          <div style="font-size:52px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.03em">2,400+</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:8px">活躍用戶</div>
+        </div>
+        <div style="width:1px;height:60px;background:rgba(255,255,255,.1)"></div>
+        <div style="text-align:center">
+          <div style="font-size:52px;font-weight:900;color:var(--cyan);line-height:1;letter-spacing:-.03em">98%</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:8px">續訂率</div>
+        </div>
+        <div style="width:1px;height:60px;background:rgba(255,255,255,.1)"></div>
+        <div style="text-align:center">
+          <div style="font-size:52px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.03em">580萬</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:8px">已處理回覆數</div>
+        </div>
+      </div>
+
+      <!-- Testimonial Grid Row 1 -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;transition:transform .3s,border-color .3s" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='rgba(0,212,245,.3)'" onmouseout="this.style.transform='none';this.style.borderColor='rgba(255,255,255,.08)'">
+          <div style="color:#fbbf24;font-size:14px;letter-spacing:1px;margin-bottom:14px">★★★★★</div>
+          <p style="font-size:15px;color:rgba(255,255,255,.85);line-height:1.65;margin-bottom:18px">"用了 ReplyAI 之後，我的 Threads 互動率直接翻三倍。以前每天要花兩個小時回留言，現在 AI 幫我搞定，我只要審核就好。真的是創作者必備工具！"</p>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#8b5cf6);display:grid;place-items:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">A</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#fff">Annie Chen</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.4)">美妝創作者 · 28K 粉絲</div>
+            </div>
+            <span style="margin-left:auto;font-size:11px;font-weight:600;background:rgba(0,212,245,.12);color:var(--cyan);padding:3px 10px;border-radius:10px">Threads</span>
+          </div>
+        </div>
+
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;transition:transform .3s,border-color .3s" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='rgba(0,212,245,.3)'" onmouseout="this.style.transform='none';this.style.borderColor='rgba(255,255,255,.08)'">
+          <div style="color:#fbbf24;font-size:14px;letter-spacing:1px;margin-bottom:14px">★★★★★</div>
+          <p style="font-size:15px;color:rgba(255,255,255,.85);line-height:1.65;margin-bottom:18px">"我們是賣保健食品的，每天都有超多人問產品問題。ReplyAI 設定好知識庫之後，95% 的問題都能精準回答，客服成本直接降了一半，銷售轉換還提升了！"</p>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#10b981,#0ea5e9);display:grid;place-items:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">K</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#fff">Kevin Huang</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.4)">健康品牌創辦人 · NutriLife</div>
+            </div>
+            <span style="margin-left:auto;font-size:11px;font-weight:600;background:rgba(0,212,245,.12);color:var(--cyan);padding:3px 10px;border-radius:10px">IG + Threads</span>
+          </div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,rgba(0,212,245,.08),rgba(123,47,247,.08));border:1px solid rgba(0,212,245,.25);border-radius:16px;padding:24px;transition:transform .3s,border-color .3s" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+          <div style="color:#fbbf24;font-size:14px;letter-spacing:1px;margin-bottom:14px">★★★★★</div>
+          <p style="font-size:15px;color:rgba(255,255,255,.85);line-height:1.65;margin-bottom:18px">"海巡功能超強！設定好關鍵字之後，AI 會自動去搜尋相關話題並留言，完全不用我動手。這個月光靠自動留言就多了 300 個新粉絲，ROI 超高！"</p>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:grid;place-items:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">S</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#fff">Sarah Wu</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.4)">電商品牌主理人 · StyleBox</div>
+            </div>
+            <span style="margin-left:auto;font-size:11px;font-weight:600;background:rgba(123,47,247,.15);color:#a78bfa;padding:3px 10px;border-radius:10px">Pro 方案</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Testimonial Grid Row 2 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;display:flex;gap:16px;align-items:flex-start;transition:transform .3s,border-color .3s" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='rgba(0,212,245,.3)'" onmouseout="this.style.transform='none';this.style.borderColor='rgba(255,255,255,.08)'">
+          <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:grid;place-items:center;font-size:17px;font-weight:800;color:#fff;flex-shrink:0">M</div>
+          <div>
+            <div style="color:#fbbf24;font-size:13px;letter-spacing:1px;margin-bottom:8px">★★★★★</div>
+            <p style="font-size:14px;color:rgba(255,255,255,.8);line-height:1.65;margin-bottom:12px">"以前花大錢找社群小編，現在 ReplyAI 24 小時守著我的帳號，凌晨三點有人問問題也秒回，客戶都說我們服務超好！"</p>
+            <div style="font-size:13px;font-weight:700;color:#fff">Max Lin</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4)">咖啡品牌主理人 · Morning Brew Co.</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;display:flex;gap:16px;align-items:flex-start;transition:transform .3s,border-color .3s" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='rgba(0,212,245,.3)'" onmouseout="this.style.transform='none';this.style.borderColor='rgba(255,255,255,.08)'">
+          <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#f43f5e,#e11d48);display:grid;place-items:center;font-size:17px;font-weight:800;color:#fff;flex-shrink:0">L</div>
+          <div>
+            <div style="color:#fbbf24;font-size:13px;letter-spacing:1px;margin-bottom:8px">★★★★★</div>
+            <p style="font-size:14px;color:rgba(255,255,255,.8);line-height:1.65;margin-bottom:12px">"輪播圖生成器太好用了，以前設計一組要半天，現在 AI 幫我生成文案，我只要調整細節就好，發文頻率直接提高三倍！"</p>
+            <div style="font-size:13px;font-weight:700;color:#fff">Lisa Wang</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4)">時尚部落客 · FashionDiary</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Testimonial Row 3 - small cards -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px">
+          <div style="color:#fbbf24;font-size:12px;letter-spacing:1px;margin-bottom:10px">★★★★★</div>
+          <p style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:12px">"設定超簡單，10 分鐘就上手，完全不需要技術背景！"</p>
+          <div style="font-size:13px;font-weight:700;color:#fff">@travelwith_joy</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35)">旅遊創作者</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px">
+          <div style="color:#fbbf24;font-size:12px;letter-spacing:1px;margin-bottom:10px">★★★★★</div>
+          <p style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:12px">"語氣設定非常準確，AI 回覆完全符合我們品牌的風格！"</p>
+          <div style="font-size:13px;font-weight:700;color:#fff">@petcare_taiwan</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35)">寵物品牌</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px">
+          <div style="color:#fbbf24;font-size:12px;letter-spacing:1px;margin-bottom:10px">★★★★★</div>
+          <p style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:12px">"專業版的數據儀表板超詳細，讓我清楚知道哪些關鍵字最有效！"</p>
+          <div style="font-size:13px;font-weight:700;color:#fff">@fitness_coach_tw</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35)">健身教練</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px">
+          <div style="color:#fbbf24;font-size:12px;letter-spacing:1px;margin-bottom:10px">★★★★★</div>
+          <p style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:12px">"客服回應速度超快，有問題馬上就解決，感覺非常被重視！"</p>
+          <div style="font-size:13px;font-weight:700;color:#fff">@handmade_studio</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35)">手作品牌</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- CTA FINAL -->
   <section id="cta-final">
     <div class="cta-orb cta-orb-1"></div>
     <div class="cta-orb cta-orb-2"></div>
     <div class="container">
-      <div class="cta-inner reveal">
+      <div class="cta-inner" style="opacity:1;transform:none">
         <h2 class="cta-h2">準備好讓 AI<br><em>幫你回留言了嗎？</em></h2>
         <p class="cta-sub">14 天免費試用，無需信用卡，隨時取消</p>
         <div class="cta-actions">
           <button class="btn btn-cyan btn-lg" onclick="navigate('login')">免費開始 14 天試用</button>
-          <button class="btn btn-ghost-dark btn-lg" onclick="showToast('業務洽談已記錄！','✅')">企業洽談</button>
+          <button class="btn btn-ghost-dark btn-lg" onclick="showToast('業務洽談已記錄！我們將在 24 小時內聯繫您','✅')">企業洽談</button>
         </div>
       </div>
     </div>
@@ -1248,8 +1383,12 @@ tr:hover td{background:var(--l-bg2)}
      PAGE: LOGIN
 ===================================================== -->
 <div id="page-login" class="page">
-  <div class="login-card">
-    <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:rgba(255,255,255,.45);background:none;border:none;cursor:pointer;padding:0;margin-bottom:24px;transition:color .2s" onmouseover="this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.color='rgba(255,255,255,.45)'">
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+    <div style="position:absolute;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(0,212,245,.12) 0%,transparent 70%);border-radius:50%"></div>
+    <div style="position:absolute;bottom:-200px;right:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(123,47,247,.1) 0%,transparent 70%);border-radius:50%"></div>
+  </div>
+  <div class="login-card" style="position:relative;z-index:1">
+    <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:rgba(255,255,255,.45);background:none;border:none;cursor:pointer;padding:0;margin-bottom:28px;transition:color .2s" onmouseover="this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.color='rgba(255,255,255,.45)'">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       返回首頁
     </button>
@@ -1259,30 +1398,80 @@ tr:hover td{background:var(--l-bg2)}
       </div>
       <span style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.03em">Reply<span style="color:var(--cyan)">AI</span></span>
     </div>
-    <h1 class="login-title">創作者後台登入</h1>
-    <p class="login-sub">管理你的 AI 回覆設定與推薦數據</p>
 
-    <div class="form-group">
-      <label class="form-label">電子郵件</label>
-      <input class="form-input" type="email" id="login-email" placeholder="your@email.com" value="demo@replyai.tw"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">密碼</label>
-      <input class="form-input" type="password" id="login-password" placeholder="••••••••" value="demo1234"/>
-      <a href="#" class="login-forgot">忘記密碼？</a>
+    <!-- Tab switcher -->
+    <div style="display:flex;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;margin-bottom:28px">
+      <button id="tab-login-btn" onclick="showLoginTab('login')" style="flex:1;padding:9px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;background:rgba(0,212,245,.15);color:var(--cyan)">登入</button>
+      <button id="tab-register-btn" onclick="showLoginTab('register')" style="flex:1;padding:9px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:rgba(255,255,255,.4)">免費註冊</button>
     </div>
 
-    <button class="btn btn-cyan" style="width:100%;margin-top:8px" onclick="doLogin()">
-      <span class="btn-label">登入後台</span>
-    </button>
+    <!-- LOGIN FORM -->
+    <div id="login-form-section">
+      <h1 class="login-title" style="margin-bottom:6px">歡迎回來</h1>
+      <p class="login-sub">登入你的 ReplyAI 後台</p>
+      <div id="login-error" style="display:none;background:rgba(255,51,102,.12);border:1px solid rgba(255,51,102,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#ff3366;margin-bottom:16px"></div>
+      <div class="form-group">
+        <label class="form-label">電子郵件</label>
+        <input class="form-input" type="email" id="login-email" placeholder="your@email.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">密碼</label>
+        <input class="form-input" type="password" id="login-password" placeholder="••••••••"/>
+        <a href="#" class="login-forgot" onclick="forgotPassword(event)">忘記密碼？</a>
+      </div>
+      <button class="btn btn-cyan" style="width:100%;margin-top:8px" onclick="doLogin()">
+        <span class="btn-label">登入後台</span>
+      </button>
+      <div class="login-divider"><span>或</span></div>
+      <button class="btn btn-ghost-dark" style="width:100%" onclick="doDemoLogin()">
+        <span class="btn-label">🚀 使用 Demo 帳號體驗</span>
+      </button>
+      <p class="login-footer-text">還沒有帳號？<a href="#" onclick="showLoginTab('register')">免費註冊 14 天試用 →</a></p>
+    </div>
 
-    <div class="login-divider"><span>或</span></div>
+    <!-- REGISTER FORM -->
+    <div id="register-form-section" style="display:none">
+      <h1 class="login-title" style="margin-bottom:6px">免費開始試用</h1>
+      <p class="login-sub">14 天免費，無需信用卡</p>
+      <div id="register-error" style="display:none;background:rgba(255,51,102,.12);border:1px solid rgba(255,51,102,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#ff3366;margin-bottom:16px"></div>
+      <div class="form-group">
+        <label class="form-label">姓名</label>
+        <input class="form-input" type="text" id="reg-name" placeholder="你的名字或品牌名稱"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">電子郵件</label>
+        <input class="form-input" type="email" id="reg-email" placeholder="your@email.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">設定密碼</label>
+        <input class="form-input" type="password" id="reg-password" placeholder="至少 8 個字元"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">確認密碼</label>
+        <input class="form-input" type="password" id="reg-password2" placeholder="再輸入一次密碼"/>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:20px">
+        <input type="checkbox" id="reg-agree" style="margin-top:3px;width:16px;height:16px;accent-color:var(--cyan);flex-shrink:0;cursor:pointer"/>
+        <label for="reg-agree" style="font-size:13px;color:rgba(255,255,255,.5);cursor:pointer;line-height:1.5">我同意 <a href="#" style="color:var(--cyan)">服務條款</a> 與 <a href="#" style="color:var(--cyan)">隱私政策</a></label>
+      </div>
+      <button class="btn btn-cyan" style="width:100%" onclick="doRegister()">
+        <span class="btn-label">建立帳號，免費開始</span>
+      </button>
+      <p class="login-footer-text">已有帳號？<a href="#" onclick="showLoginTab('login')">立即登入 →</a></p>
+    </div>
 
-    <button class="btn btn-ghost-dark" style="width:100%" onclick="doLogin()">
-      <span class="btn-label">🚀 使用 Demo 帳號體驗</span>
-    </button>
+    <!-- SUCCESS STATE -->
+    <div id="register-success-section" style="display:none;text-align:center;padding:16px 0">
+      <div style="width:64px;height:64px;background:rgba(16,185,129,.15);border-radius:50%;display:grid;place-items:center;margin:0 auto 20px;border:2px solid #10b981">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:8px">帳號建立成功！</h2>
+      <p style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:24px">歡迎加入 ReplyAI！正在進入後台…</p>
+      <div style="width:100%;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden">
+        <div id="success-bar" style="height:100%;background:var(--cyan);width:0%;transition:width 1.2s ease;border-radius:2px"></div>
+      </div>
+    </div>
 
-    <p class="login-footer-text">還沒有帳號？<a href="#" onclick="doLogin()">免費試用 14 天 →</a></p>
   </div>
 </div>
 
@@ -1299,10 +1488,10 @@ tr:hover td{background:var(--l-bg2)}
     </div>
     <span class="badge badge-cyan dash-nav-badge">創作者後台</span>
     <div class="dash-user">
-      <span style="font-size:13px;color:var(--l-muted)">Demo 模式</span>
+      <span id="dash-plan-badge" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:10px;background:rgba(0,212,245,.1);color:var(--cyan)">試用中</span>
       <div class="dash-user-avatar">D</div>
       <span class="dash-user-name">demo_creator</span>
-      <button class="btn btn-outline btn-sm" onclick="navigate('landing')" style="font-size:13px">登出</button>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()" style="font-size:13px">登出</button>
     </div>
   </div>
 
@@ -1937,17 +2126,173 @@ function setReferralCookie(creatorId) {
 }
 
 /* ============================================================
-   LOGIN
+   AUTH SYSTEM (localStorage-based)
 ============================================================ */
+const AUTH_KEY = 'replyai_users';
+const SESSION_KEY = 'replyai_session';
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || {}; } catch { return {}; }
+}
+function saveUsers(users) { localStorage.setItem(AUTH_KEY, JSON.stringify(users)); }
+function getSession() {
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; }
+}
+function saveSession(user) { localStorage.setItem(SESSION_KEY, JSON.stringify(user)); }
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+function showLoginTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('login-form-section').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('register-form-section').style.display = !isLogin ? 'block' : 'none';
+  document.getElementById('register-success-section').style.display = 'none';
+  const lBtn = document.getElementById('tab-login-btn');
+  const rBtn = document.getElementById('tab-register-btn');
+  if (lBtn && rBtn) {
+    lBtn.style.background = isLogin ? 'rgba(0,212,245,.15)' : 'transparent';
+    lBtn.style.color = isLogin ? 'var(--cyan)' : 'rgba(255,255,255,.4)';
+    rBtn.style.background = !isLogin ? 'rgba(0,212,245,.15)' : 'transparent';
+    rBtn.style.color = !isLogin ? 'var(--cyan)' : 'rgba(255,255,255,.4)';
+  }
+}
+
+function showAuthError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.animation = 'none';
+  setTimeout(() => el.style.animation = '', 10);
+}
+function hideAuthError(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
 function doLogin() {
-  const btn = document.querySelector('#page-login .btn-cyan');
+  const email = (document.getElementById('login-email')?.value || '').trim().toLowerCase();
+  const pw = document.getElementById('login-password')?.value || '';
+  hideAuthError('login-error');
+
+  if (!email) { showAuthError('login-error', '請輸入電子郵件'); return; }
+  if (!pw) { showAuthError('login-error', '請輸入密碼'); return; }
+
+  const btn = document.querySelector('#login-form-section .btn-cyan');
+  if (btn) btn.classList.add('loading');
+
+  setTimeout(() => {
+    if (btn) btn.classList.remove('loading');
+    const users = getUsers();
+    const user = users[email];
+    if (!user) { showAuthError('login-error', '找不到此帳號，請先註冊'); return; }
+    if (user.password !== btoa(pw)) { showAuthError('login-error', '密碼錯誤，請重新輸入'); return; }
+
+    saveSession(user);
+    applySession(user);
+    navigate('dashboard');
+    showToast(`歡迎回來，${user.name}！`, '👋');
+  }, 700);
+}
+
+function doDemoLogin() {
+  const btn = document.querySelector('#page-login .btn-ghost-dark');
   if (btn) btn.classList.add('loading');
   setTimeout(() => {
     if (btn) btn.classList.remove('loading');
+    const demoUser = { name: 'Demo 創作者', email: 'demo@replyai.tw', plan: 'pro', avatar: 'D' };
+    saveSession(demoUser);
+    applySession(demoUser);
     navigate('dashboard');
-    showToast('歡迎回來！已進入 Demo 模式', '👋');
-  }, 900);
+    showToast('已進入 Demo 模式，盡情探索所有功能！', '🚀');
+  }, 600);
 }
+
+function doRegister() {
+  const name = (document.getElementById('reg-name')?.value || '').trim();
+  const email = (document.getElementById('reg-email')?.value || '').trim().toLowerCase();
+  const pw = document.getElementById('reg-password')?.value || '';
+  const pw2 = document.getElementById('reg-password2')?.value || '';
+  const agree = document.getElementById('reg-agree')?.checked;
+  hideAuthError('register-error');
+
+  if (!name) { showAuthError('register-error', '請輸入姓名或品牌名稱'); return; }
+  if (!email || !email.includes('@')) { showAuthError('register-error', '請輸入有效的電子郵件'); return; }
+  if (pw.length < 8) { showAuthError('register-error', '密碼至少需要 8 個字元'); return; }
+  if (pw !== pw2) { showAuthError('register-error', '兩次密碼輸入不一致'); return; }
+  if (!agree) { showAuthError('register-error', '請同意服務條款才能繼續'); return; }
+
+  const users = getUsers();
+  if (users[email]) { showAuthError('register-error', '此電子郵件已被註冊，請直接登入'); return; }
+
+  const btn = document.querySelector('#register-form-section .btn-cyan');
+  if (btn) btn.classList.add('loading');
+
+  setTimeout(() => {
+    if (btn) btn.classList.remove('loading');
+    const newUser = {
+      name, email,
+      password: btoa(pw),
+      plan: 'trial',
+      avatar: name.charAt(0).toUpperCase(),
+      joinDate: new Date().toLocaleDateString('zh-TW'),
+      trialEnds: new Date(Date.now() + 14*24*3600*1000).toLocaleDateString('zh-TW'),
+    };
+    users[email] = newUser;
+    saveUsers(users);
+    saveSession(newUser);
+
+    // Show success
+    document.getElementById('register-form-section').style.display = 'none';
+    const successEl = document.getElementById('register-success-section');
+    successEl.style.display = 'block';
+    setTimeout(() => {
+      const bar = document.getElementById('success-bar');
+      if (bar) bar.style.width = '100%';
+    }, 100);
+    setTimeout(() => {
+      applySession(newUser);
+      navigate('dashboard');
+      showToast(`歡迎！${name}，你的 14 天試用已開始 🎉`, '🎉');
+    }, 1400);
+  }, 800);
+}
+
+function applySession(user) {
+  // Update dashboard user display
+  const nameEls = document.querySelectorAll('.dash-user-name, #dash-username');
+  nameEls.forEach(el => el.textContent = user.name || user.email);
+  const avatarEls = document.querySelectorAll('.dash-user-avatar');
+  avatarEls.forEach(el => el.textContent = user.avatar || user.name?.charAt(0) || 'U');
+  const titleEl = document.querySelector('.dash-page-title');
+  if (titleEl) titleEl.textContent = `歡迎回來，${user.name || user.email} 👋`;
+  const planBadge = document.getElementById('dash-plan-badge');
+  if (planBadge) {
+    const labels = { pro:'專業版', trial:'試用中 14天', basic:'基礎版', enterprise:'企業版' };
+    planBadge.textContent = labels[user.plan] || '試用中';
+  }
+}
+
+function doLogout() {
+  clearSession();
+  navigate('landing');
+  showToast('已成功登出', '👋');
+}
+
+function forgotPassword(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email')?.value?.trim();
+  if (!email) { showAuthError('login-error', '請先輸入電子郵件，再點忘記密碼'); return; }
+  showToast(`密碼重設信已寄送至 ${email}（Demo 模式，實際不會寄出）`, '📧');
+}
+
+// Auto-login if session exists
+(function checkAutoLogin() {
+  const session = getSession();
+  if (session && window.location.hash === '#dashboard') {
+    applySession(session);
+    navigate('dashboard');
+  }
+})();
 
 /* ============================================================
    NAVBAR
@@ -1970,23 +2315,21 @@ document.getElementById('hamburger').addEventListener('click', () => {
    SCROLL REVEAL + COUNTER
 ============================================================ */
 (function() {
+  // All elements start visible — no hidden content on load
+  // Observer only used for counter animations
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        // Trigger counters inside this element
         entry.target.querySelectorAll('.counter').forEach(animateCounter);
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0.12 });
 
-  document.querySelectorAll('.reveal, .reveal-up, .stagger').forEach(el => observer.observe(el));
-
-  // Force all elements in landing page visible immediately (don't wait for scroll)
-  setTimeout(() => {
-    document.querySelectorAll('#page-landing .reveal, #page-landing .reveal-up, #page-landing .stagger').forEach(el => el.classList.add('visible'));
-  }, 100);
+  document.querySelectorAll('.reveal, .reveal-up, .stagger').forEach(el => {
+    el.classList.add('visible');
+    observer.observe(el);
+  });
 })();
 
 function animateCounter(el) {

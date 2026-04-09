@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ReplyAI 後台</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f5f5; color: #111; }
+
+  /* ── Top Nav ── */
+  .nav {
+    height: 60px;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 12px;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 18px; font-weight: 800; letter-spacing: -.03em;
+  }
+  .nav-logo-mark {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #00d4f5, #7b2ff7);
+    border-radius: 7px;
+    display: grid; place-items: center;
+  }
+  .nav-logo-mark svg { display: block; }
+  .nav-logo span { color: #00d4f5; }
+  .nav-badge {
+    font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    background: rgba(0,212,245,.1); color: #00d4f5;
+  }
+  .nav-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .nav-user {
+    font-size: 14px; font-weight: 600; color: #374151;
+  }
+  .nav-email {
+    font-size: 12px; color: #9ca3af;
+  }
+  .btn-logout {
+    padding: 8px 18px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px; font-weight: 600; color: #374151;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-logout:hover { background: #f9fafb; border-color: #d1d5db; }
+
+  /* ── Main content ── */
+  .main {
+    max-width: 720px;
+    margin: 60px auto;
+    padding: 0 24px;
+  }
+  .welcome-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+  }
+  .welcome-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, #00d4f5, #7b2ff7);
+    border-radius: 16px;
+    display: grid; place-items: center;
+    margin: 0 auto 20px;
+  }
+  .welcome-title {
+    font-size: 26px; font-weight: 800;
+    letter-spacing: -.03em; margin-bottom: 10px;
+  }
+  .welcome-title span { color: #00d4f5; }
+  .welcome-sub {
+    font-size: 15px; color: #6b7280; line-height: 1.6; margin-bottom: 32px;
+  }
+  .user-info {
+    display: inline-flex;
+    align-items: center; gap: 10px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin-bottom: 32px;
+    text-align: left;
+  }
+  .user-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #00d4f5, #7b2ff7);
+    display: grid; place-items: center;
+    font-size: 16px; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+  }
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #10b981;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .4; }
+  }
+
+  /* ── Coming soon cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 32px;
+  }
+  .card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .card:hover { border-color: #00d4f5; background: rgba(0,212,245,.04); }
+  .card-icon { font-size: 24px; margin-bottom: 10px; }
+  .card-title { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 4px; }
+  .card-desc { font-size: 12px; color: #9ca3af; line-height: 1.5; }
+  .card-badge {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px;
+    background: rgba(0,212,245,.1); color: #00d4f5;
+  }
+
+  /* ── Loading overlay ── */
+  #loading {
+    position: fixed; inset: 0;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+    flex-direction: column; gap: 14px;
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #00d4f5;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading p { font-size: 14px; color: #9ca3af; }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .cards { grid-template-columns: 1fr; }
+    .welcome-card { padding: 28px 20px; }
+    .main { margin: 32px auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 載入中遮罩（驗證完成後隱藏） -->
+<div id="loading">
+  <div style="width:40px;height:40px;background:linear-gradient(135deg,#00d4f5,#7b2ff7);border-radius:10px;display:grid;place-items:center">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/>
+    </svg>
+  </div>
+  <div class="spinner"></div>
+  <p>驗證登入狀態…</p>
+</div>
+
+<!-- ── Navbar ── -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/>
+      </svg>
+    </div>
+    Reply<span>AI</span>
+  </div>
+  <span class="nav-badge">創作者後台</span>
+  <div class="nav-right">
+    <div>
+      <div class="nav-user" id="nav-name">載入中…</div>
+      <div class="nav-email" id="nav-email"></div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">登出</button>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main class="main">
+  <div class="welcome-card">
+    <div class="welcome-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/>
+      </svg>
+    </div>
+
+    <h1 class="welcome-title">歡迎來到 <span>ReplyAI</span> 後台</h1>
+    <p class="welcome-sub">你已成功登入。Supabase Auth 驗證正常運作。<br>以下是你的帳號資訊：</p>
+
+    <div class="user-info">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#111" id="user-display-name">—</div>
+        <div style="font-size:12px;color:#9ca3af" id="user-display-email">—</div>
+        <div style="font-size:12px;color:#10b981;margin-top:2px">
+          <span class="status-dot"></span>登入狀態：有效
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;color:#9ca3af;margin-bottom:8px">後台功能（開發中）</div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <div class="card-title">Threads 海巡</div>
+        <div class="card-desc">搜尋關鍵字貼文，AI 自動生成回覆</div>
+        <span class="card-badge">即將上線</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">✍️</div>
+        <div class="card-title">AI 發文生成</div>
+        <div class="card-desc">輸入主題，生成可發布的社群貼文</div>
+        <span class="card-badge">即將上線</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎠</div>
+        <div class="card-title">輪播圖生成</div>
+        <div class="card-desc">一鍵生成多張帶文案的圖卡</div>
+        <span class="card-badge">即將上線</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">📅</div>
+        <div class="card-title">發文排程</div>
+        <div class="card-desc">視覺化管理本週所有排程貼文</div>
+        <span class="card-badge">即將上線</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <div class="card-title">帳號托管</div>
+        <div class="card-desc">連結 IG / Threads，AI 24hr 管理</div>
+        <span class="card-badge">即將上線</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">數據總覽</div>
+        <div class="card-desc">推薦點擊、轉換、佣金一目了然</div>
+        <span class="card-badge">即將上線</span>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;padding-top:24px;border-top:1px solid #f3f4f6">
+      <button onclick="doLogout()" style="
+        padding:12px 28px;
+        background:linear-gradient(135deg,#00d4f5,#7b2ff7);
+        color:#fff; border:none; border-radius:10px;
+        font-size:14px; font-weight:700; cursor:pointer;
+        transition:opacity .2s;
+      " onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        登出帳號
+      </button>
+      <a href="replyai-test-complete.html" style="display:block;margin-top:14px;font-size:13px;color:#9ca3af;text-decoration:none">
+        ← 回到首頁
+      </a>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ── Supabase 設定 ── */
+const { createClient } = supabase;
+const SUPABASE_URL = 'https://dhbawcjhabpoocioscic.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_giI2XHwAcB92vdpOu0hxjA_h6y2i-LD';
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── Auth Guard：未登入 → 踢回首頁 ── */
+async function checkAuth() {
+  const { data: { session }, error } = await sb.auth.getSession();
+
+  if (!session) {
+    // 沒有有效 session，導回首頁
+    window.location.href = 'replyai-test-complete.html';
+    return;
+  }
+
+  // 有 session，隱藏載入遮罩並填入用戶資料
+  const user = session.user;
+  const name = user.user_metadata?.name || user.email.split('@')[0];
+  const initial = name.charAt(0).toUpperCase();
+
+  document.getElementById('nav-name').textContent = name;
+  document.getElementById('nav-email').textContent = user.email;
+  document.getElementById('user-avatar').textContent = initial;
+  document.getElementById('user-display-name').textContent = name;
+  document.getElementById('user-display-email').textContent = user.email;
+
+  // 隱藏載入遮罩
+  document.getElementById('loading').style.display = 'none';
+}
+
+/* ── 登出 ── */
+async function doLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'replyai-test-complete.html';
+}
+
+/* ── 執行 ── */
+checkAuth();
+</script>
+</body>
+</html>

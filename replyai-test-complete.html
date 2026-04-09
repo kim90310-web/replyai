@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ============================================================
    RESET & BASE
@@ -682,9 +684,16 @@ tr:hover td{background:var(--l-bg2)}
         <li><a href="#faq">常見問題</a></li>
         <li><a href="#" onclick="navigate('landing')">企業方案</a></li>
       </ul>
-      <div class="nav-cta">
+      <!-- 未登入狀態 -->
+      <div class="nav-cta" id="nav-cta-guest">
         <button class="btn btn-ghost-dark btn-sm" onclick="navigate('login')">登入</button>
         <button class="btn btn-cyan btn-sm" onclick="navigate('login')">免費開始 →</button>
+      </div>
+      <!-- 已登入狀態（預設隱藏，偵測到 session 後顯示） -->
+      <div class="nav-cta" id="nav-cta-user" style="display:none">
+        <span id="nav-user-greeting" style="font-size:13px;color:rgba(255,255,255,.55);font-weight:500"></span>
+        <button class="btn btn-cyan btn-sm" onclick="window.location.href='dashboard.html'">進入後台 →</button>
+        <button class="btn btn-ghost-dark btn-sm" onclick="doLogout()">登出</button>
       </div>
       <button class="nav-hamburger" id="hamburger" aria-label="選單">
         <span></span><span></span><span></span>
@@ -2126,20 +2135,43 @@ function setReferralCookie(creatorId) {
 }
 
 /* ============================================================
-   AUTH SYSTEM (localStorage-based)
+   SUPABASE CLIENT
 ============================================================ */
-const AUTH_KEY = 'replyai_users';
-const SESSION_KEY = 'replyai_session';
+const { createClient } = supabase;
+const SUPABASE_URL = 'https://dhbawcjhabpoocioscic.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_giI2XHwAcB92vdpOu0hxjA_h6y2i-LD';
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function getUsers() {
-  try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || {}; } catch { return {}; }
+// 監聽登入狀態，自動切換 navbar
+sb.auth.onAuthStateChange((event, session) => {
+  updateNavbarAuthState(session?.user ?? null);
+});
+
+// 頁面載入時立即檢查 session
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  updateNavbarAuthState(session?.user ?? null);
+})();
+
+function updateNavbarAuthState(user) {
+  const guest = document.getElementById('nav-cta-guest');
+  const loggedIn = document.getElementById('nav-cta-user');
+  const greeting = document.getElementById('nav-user-greeting');
+  if (!guest || !loggedIn) return;
+  if (user) {
+    guest.style.display = 'none';
+    loggedIn.style.display = 'flex';
+    const name = user.user_metadata?.name || user.email?.split('@')[0] || '用戶';
+    if (greeting) greeting.textContent = `嗨，${name}`;
+  } else {
+    guest.style.display = 'flex';
+    loggedIn.style.display = 'none';
+  }
 }
-function saveUsers(users) { localStorage.setItem(AUTH_KEY, JSON.stringify(users)); }
-function getSession() {
-  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; }
-}
-function saveSession(user) { localStorage.setItem(SESSION_KEY, JSON.stringify(user)); }
-function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+/* ============================================================
+   AUTH SYSTEM (Supabase)
+============================================================ */
 
 function showLoginTab(tab) {
   const isLogin = tab === 'login';
@@ -2169,45 +2201,66 @@ function hideAuthError(id) {
   if (el) el.style.display = 'none';
 }
 
-function doLogin() {
+async function doLogin() {
   const email = (document.getElementById('login-email')?.value || '').trim().toLowerCase();
   const pw = document.getElementById('login-password')?.value || '';
   hideAuthError('login-error');
-
   if (!email) { showAuthError('login-error', '請輸入電子郵件'); return; }
   if (!pw) { showAuthError('login-error', '請輸入密碼'); return; }
 
   const btn = document.querySelector('#login-form-section .btn-cyan');
   if (btn) btn.classList.add('loading');
 
-  setTimeout(() => {
-    if (btn) btn.classList.remove('loading');
-    const users = getUsers();
-    const user = users[email];
-    if (!user) { showAuthError('login-error', '找不到此帳號，請先註冊'); return; }
-    if (user.password !== btoa(pw)) { showAuthError('login-error', '密碼錯誤，請重新輸入'); return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
 
-    saveSession(user);
-    applySession(user);
-    navigate('dashboard');
-    showToast(`歡迎回來，${user.name}！`, '👋');
-  }, 700);
+  if (btn) btn.classList.remove('loading');
+
+  if (error) {
+    const errMap = {
+      'Invalid login credentials': '電子郵件或密碼錯誤，請重新確認',
+      'Email not confirmed': '請先點擊信箱中的確認連結',
+      'Too many requests': '嘗試次數過多，請稍後再試',
+    };
+    showAuthError('login-error', errMap[error.message] || error.message);
+    return;
+  }
+
+  const name = data.user?.user_metadata?.name || data.user?.email?.split('@')[0];
+  showToast(`歡迎回來，${name}！`, '👋');
+  setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
 }
 
-function doDemoLogin() {
+async function doDemoLogin() {
   const btn = document.querySelector('#page-login .btn-ghost-dark');
   if (btn) btn.classList.add('loading');
-  setTimeout(() => {
-    if (btn) btn.classList.remove('loading');
-    const demoUser = { name: 'Demo 創作者', email: 'demo@replyai.tw', plan: 'pro', avatar: 'D' };
-    saveSession(demoUser);
-    applySession(demoUser);
-    navigate('dashboard');
-    showToast('已進入 Demo 模式，盡情探索所有功能！', '🚀');
-  }, 600);
+
+  // 先嘗試登入 demo 帳號；不存在就建立
+  let { data, error } = await sb.auth.signInWithPassword({
+    email: 'demo@replyai.tw', password: 'Demo@replyai2026'
+  });
+
+  if (error?.message?.includes('Invalid login credentials')) {
+    const reg = await sb.auth.signUp({
+      email: 'demo@replyai.tw', password: 'Demo@replyai2026',
+      options: { data: { name: 'Demo 創作者', plan: 'pro' } }
+    });
+    if (!reg.error) {
+      const retry = await sb.auth.signInWithPassword({
+        email: 'demo@replyai.tw', password: 'Demo@replyai2026'
+      });
+      data = retry.data; error = retry.error;
+    }
+  }
+
+  if (btn) btn.classList.remove('loading');
+
+  if (error) { showAuthError('login-error', 'Demo 登入失敗：' + error.message); return; }
+
+  showToast('已進入 Demo 模式，盡情探索所有功能！', '🚀');
+  setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
 }
 
-function doRegister() {
+async function doRegister() {
   const name = (document.getElementById('reg-name')?.value || '').trim();
   const email = (document.getElementById('reg-email')?.value || '').trim().toLowerCase();
   const pw = document.getElementById('reg-password')?.value || '';
@@ -2221,59 +2274,38 @@ function doRegister() {
   if (pw !== pw2) { showAuthError('register-error', '兩次密碼輸入不一致'); return; }
   if (!agree) { showAuthError('register-error', '請同意服務條款才能繼續'); return; }
 
-  const users = getUsers();
-  if (users[email]) { showAuthError('register-error', '此電子郵件已被註冊，請直接登入'); return; }
-
   const btn = document.querySelector('#register-form-section .btn-cyan');
   if (btn) btn.classList.add('loading');
 
-  setTimeout(() => {
-    if (btn) btn.classList.remove('loading');
-    const newUser = {
-      name, email,
-      password: btoa(pw),
-      plan: 'trial',
-      avatar: name.charAt(0).toUpperCase(),
-      joinDate: new Date().toLocaleDateString('zh-TW'),
-      trialEnds: new Date(Date.now() + 14*24*3600*1000).toLocaleDateString('zh-TW'),
+  const { data, error } = await sb.auth.signUp({
+    email, password: pw,
+    options: { data: { name, plan: 'trial', avatar: name.charAt(0).toUpperCase() } }
+  });
+
+  if (btn) btn.classList.remove('loading');
+
+  if (error) {
+    const errMap = {
+      'User already registered': '此電子郵件已被註冊，請直接登入',
+      'Password should be at least 6 characters': '密碼至少需要 6 個字元',
     };
-    users[email] = newUser;
-    saveUsers(users);
-    saveSession(newUser);
-
-    // Show success
-    document.getElementById('register-form-section').style.display = 'none';
-    const successEl = document.getElementById('register-success-section');
-    successEl.style.display = 'block';
-    setTimeout(() => {
-      const bar = document.getElementById('success-bar');
-      if (bar) bar.style.width = '100%';
-    }, 100);
-    setTimeout(() => {
-      applySession(newUser);
-      navigate('dashboard');
-      showToast(`歡迎！${name}，你的 14 天試用已開始 🎉`, '🎉');
-    }, 1400);
-  }, 800);
-}
-
-function applySession(user) {
-  // Update dashboard user display
-  const nameEls = document.querySelectorAll('.dash-user-name, #dash-username');
-  nameEls.forEach(el => el.textContent = user.name || user.email);
-  const avatarEls = document.querySelectorAll('.dash-user-avatar');
-  avatarEls.forEach(el => el.textContent = user.avatar || user.name?.charAt(0) || 'U');
-  const titleEl = document.querySelector('.dash-page-title');
-  if (titleEl) titleEl.textContent = `歡迎回來，${user.name || user.email} 👋`;
-  const planBadge = document.getElementById('dash-plan-badge');
-  if (planBadge) {
-    const labels = { pro:'專業版', trial:'試用中 14天', basic:'基礎版', enterprise:'企業版' };
-    planBadge.textContent = labels[user.plan] || '試用中';
+    showAuthError('register-error', errMap[error.message] || error.message);
+    return;
   }
+
+  // 顯示成功動畫
+  document.getElementById('register-form-section').style.display = 'none';
+  const successEl = document.getElementById('register-success-section');
+  successEl.style.display = 'block';
+  setTimeout(() => { const b = document.getElementById('success-bar'); if (b) b.style.width = '100%'; }, 80);
+  setTimeout(() => {
+    showToast(`歡迎！${name}，你的 14 天試用已開始 🎉`, '🎉');
+    window.location.href = 'dashboard.html';
+  }, 1500);
 }
 
-function doLogout() {
-  clearSession();
+async function doLogout() {
+  await sb.auth.signOut();
   navigate('landing');
   showToast('已成功登出', '👋');
 }

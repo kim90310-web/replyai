@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>靈感大腦 Thread Brain — ReplyAI</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Marked.js for Markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f7fa; color: #111; min-height: 100vh; }
+
+/* ── Loading ── */
+#loading { position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:999; }
+.spinner { width:34px;height:34px;border:3px solid #e5e7eb;border-top-color:#00d4f5;border-radius:50%;animation:spin .7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* ── Navbar ── */
+.nav { height:60px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:100; }
+.nav-logo { display:flex;align-items:center;gap:8px;font-size:18px;font-weight:800;letter-spacing:-.03em;text-decoration:none;color:inherit; }
+.nav-logo-mark { width:28px;height:28px;background:linear-gradient(135deg,#00d4f5,#7b2ff7);border-radius:7px;display:grid;place-items:center; }
+.nav-logo span { color:#00d4f5; }
+.nav-divider { width:1px;height:20px;background:#e5e7eb; }
+.nav-page-title { font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;gap:6px; }
+.nav-right { margin-left:auto;display:flex;align-items:center;gap:10px; }
+.nav-user { font-size:13px;font-weight:600;color:#374151; }
+.btn-sm { padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid #e5e7eb;background:#fff;color:#374151;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:5px; }
+.btn-sm:hover { background:#f9fafb; }
+
+/* ── Layout ── */
+.layout { display:flex;min-height:calc(100vh - 60px); }
+
+/* ── Sidebar ── */
+.sidebar { width:220px;flex-shrink:0;background:#fff;border-right:1px solid #e5e7eb;padding:20px 12px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto; }
+.sidebar-section { font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:.06em;text-transform:uppercase;padding:0 8px;margin:0 0 8px; }
+.sidebar-item { display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;transition:all .15s;text-decoration:none;margin-bottom:2px; }
+.sidebar-item:hover { background:#f3f4f6;color:#111; }
+.sidebar-item.active { background:rgba(0,212,245,.1);color:#00d4f5; }
+.sidebar-item .si-icon { font-size:16px;width:20px;text-align:center; }
+.sidebar-badge { margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:rgba(0,212,245,.15);color:#00d4f5; }
+.sidebar-coming { opacity:.5;cursor:not-allowed; }
+
+/* ── Main ── */
+.main { flex:1;padding:28px 32px;max-width:1100px; }
+.page-header { margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px; }
+.page-header-left h1 { font-size:26px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px; }
+.page-header-left h1 span { color:#00d4f5; }
+.page-header-left p { font-size:14px;color:#6b7280; }
+.btn-draft {
+  padding:12px 24px;background:linear-gradient(135deg,#7b2ff7,#00d4f5);color:#fff;
+  border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+  box-shadow:0 4px 14px rgba(123,47,247,.25);transition:all .2s;
+}
+.btn-draft:hover { transform:translateY(-1px);box-shadow:0 6px 20px rgba(123,47,247,.35); }
+
+/* ── Two-panel layout ── */
+.panels { display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start; }
+
+/* ── Left panel: Raw Input ── */
+.panel-card {
+  background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;
+  padding:24px;transition:border-color .2s;
+}
+.panel-card:hover { border-color:#d1d5db; }
+.panel-title {
+  font-size:15px;font-weight:700;color:#374151;margin-bottom:4px;
+  display:flex;align-items:center;gap:8px;
+}
+.panel-subtitle { font-size:12px;color:#9ca3af;margin-bottom:16px;line-height:1.5; }
+
+.brain-textarea {
+  width:100%;min-height:280px;padding:16px;
+  border:1.5px solid #e5e7eb;border-radius:10px;
+  font-size:14px;font-family:'Inter',-apple-system,sans-serif;
+  line-height:1.7;color:#374151;background:#f9fafb;
+  outline:none;resize:vertical;transition:border-color .2s;
+}
+.brain-textarea:focus { border-color:#7b2ff7;background:#fff; }
+.brain-textarea::placeholder { color:#c9cdd5; }
+
+.textarea-footer { display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px; }
+.char-count { font-size:12px;color:#9ca3af; }
+
+.btn-brainwash {
+  padding:12px 28px;
+  background:linear-gradient(135deg,#00d4f5,#7b2ff7);color:#fff;
+  border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+  transition:all .2s;width:100%;justify-content:center;margin-top:16px;
+}
+.btn-brainwash:hover { opacity:.9;transform:translateY(-1px); }
+.btn-brainwash:disabled { opacity:.5;cursor:not-allowed;transform:none; }
+
+.input-tips { margin-top:14px;display:flex;gap:6px;flex-wrap:wrap; }
+.input-tip {
+  padding:5px 12px;border:1.5px dashed #e5e7eb;border-radius:20px;
+  font-size:11px;color:#9ca3af;cursor:pointer;transition:all .15s;
+}
+.input-tip:hover { border-color:#7b2ff7;color:#7b2ff7;background:rgba(123,47,247,.04); }
+
+/* ── Right panel: Wiki View ── */
+.wiki-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+.wiki-count { font-size:12px;color:#9ca3af;font-weight:600; }
+
+.wiki-content {
+  background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;
+  padding:20px 24px;min-height:280px;
+  font-size:14px;line-height:1.8;color:#374151;
+}
+.wiki-content h2 {
+  font-size:16px;font-weight:800;color:#111;margin:20px 0 8px;padding-bottom:6px;
+  border-bottom:2px solid rgba(0,212,245,.2);
+}
+.wiki-content h2:first-child { margin-top:0; }
+.wiki-content ul { padding-left:20px;margin:6px 0 14px; }
+.wiki-content li { margin-bottom:4px;line-height:1.7; }
+.wiki-content li::marker { color:#00d4f5; }
+.wiki-content p { margin-bottom:10px; }
+.wiki-content code { background:rgba(0,212,245,.08);padding:2px 6px;border-radius:4px;font-size:13px;color:#7b2ff7; }
+.wiki-content blockquote {
+  border-left:3px solid #7b2ff7;padding:8px 16px;margin:10px 0;
+  background:rgba(123,47,247,.03);border-radius:0 8px 8px 0;
+  font-style:italic;color:#6b7280;
+}
+.wiki-content strong { color:#111; }
+.wiki-content em { color:#6b7280; }
+
+.wiki-empty {
+  text-align:center;padding:40px 20px;color:#c9cdd5;
+}
+.wiki-empty .wei { font-size:48px;margin-bottom:12px; }
+.wiki-empty h3 { font-size:15px;font-weight:700;color:#9ca3af;margin-bottom:6px; }
+.wiki-empty p { font-size:13px;color:#c9cdd5; }
+
+.wiki-actions { display:flex;gap:8px;margin-top:14px; }
+.btn-wiki-action {
+  padding:7px 14px;border:1.5px solid #e5e7eb;border-radius:8px;
+  background:#fff;font-size:12px;font-weight:600;color:#374151;
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;
+}
+.btn-wiki-action:hover { border-color:#00d4f5;color:#00d4f5; }
+
+/* ── Modal ── */
+.modal-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.modal-overlay.open { opacity:1;pointer-events:auto; }
+.modal {
+  background:#fff;border-radius:16px;width:90%;max-width:600px;
+  max-height:80vh;overflow-y:auto;padding:32px;
+  transform:translateY(20px);transition:transform .25s;
+}
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-title { font-size:20px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px; }
+.modal-subtitle { font-size:13px;color:#9ca3af;margin-bottom:20px; }
+.modal-textarea {
+  width:100%;min-height:160px;padding:14px;
+  border:1.5px solid #e5e7eb;border-radius:10px;
+  font-size:14px;font-family:'Inter',-apple-system,sans-serif;
+  line-height:1.7;color:#374151;background:#f9fafb;
+  outline:none;resize:vertical;transition:border-color .2s;
+}
+.modal-textarea:focus { border-color:#7b2ff7;background:#fff; }
+.modal-actions { display:flex;justify-content:flex-end;gap:10px;margin-top:18px; }
+.btn-modal-cancel {
+  padding:10px 20px;border:1.5px solid #e5e7eb;border-radius:8px;
+  background:#fff;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;
+}
+.btn-modal-go {
+  padding:10px 24px;background:linear-gradient(135deg,#7b2ff7,#00d4f5);
+  color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+}
+.modal-result { margin-top:18px;display:none; }
+.modal-result.show { display:block; }
+.modal-result-card {
+  background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;
+  padding:16px 20px;font-size:14px;line-height:1.7;color:#374151;
+  white-space:pre-wrap;
+}
+.modal-result-footer { display:flex;align-items:center;justify-content:space-between;margin-top:10px; }
+
+/* ── Toast ── */
+#toast { position:fixed;bottom:28px;right:28px;z-index:9999;background:#111;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none; }
+#toast.show { transform:translateY(0);opacity:1; }
+
+.hidden { display:none!important; }
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{padding:20px 16px}
+  .panels{grid-template-columns:1fr}
+  .page-header{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div style="width:40px;height:40px;background:linear-gradient(135deg,#00d4f5,#7b2ff7);border-radius:10px;display:grid;place-items:center">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/></svg>
+  </div>
+  <div class="spinner"></div>
+  <p style="font-size:14px;color:#9ca3af">驗證登入中…</p>
+</div>
+
+<!-- Navbar -->
+<nav class="nav">
+  <a class="nav-logo" href="dashboard.html">
+    <div class="nav-logo-mark">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/></svg>
+    </div>
+    Reply<span>AI</span>
+  </a>
+  <div class="nav-divider"></div>
+  <div class="nav-page-title">🧠 靈感大腦 Thread Brain</div>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-name">載入中…</span>
+    <a class="btn-sm" href="dashboard.html">← 後台</a>
+    <button class="btn-sm" onclick="doLogout()">登出</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section" style="margin-top:4px">功能</div>
+    <a class="sidebar-item active" href="thread-brain.html"><span class="si-icon">🧠</span>靈感大腦</a>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">✍️</span>AI 發文生成<span class="sidebar-badge">即將上線</span></div>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">🎠</span>輪播圖生成<span class="sidebar-badge">即將上線</span></div>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">📅</span>發文排程<span class="sidebar-badge">即將上線</span></div>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">📱</span>帳號托管<span class="sidebar-badge">即將上線</span></div>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">📊</span>數據總覽<span class="sidebar-badge">即將上線</span></div>
+    <div class="sidebar-section" style="margin-top:20px">帳號</div>
+    <a class="sidebar-item" href="dashboard.html"><span class="si-icon">🏠</span>後台首頁</a>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Page header with draft button -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>靈感<span>大腦</span></h1>
+        <p>建立你的個人知識 Wiki（第二大腦），AI 幫你把雜亂想法變成結構化知識</p>
+      </div>
+      <button class="btn-draft" onclick="openDraftModal()">
+        🚀 用我的大腦草擬一篇 Threads
+      </button>
+    </div>
+
+    <!-- Two panels -->
+    <div class="panels">
+      <!-- Left: Raw Input -->
+      <div class="panel-card">
+        <div class="panel-title">🤯 腦袋空空？把雜亂的靈感、文章、連結都丟進來</div>
+        <div class="panel-subtitle">不需要整理格式，把你看到的、想到的、學到的東西全部貼進來，AI 會幫你消化整理</div>
+        <textarea class="brain-textarea" id="raw-input" placeholder="把任何東西丟進來！例如：&#10;&#10;• 今天看到一篇文章說 Layer 2 互通性是 2026 年最重要的趨勢&#10;• 我覺得「輸出」才是最好的學習方法，只看不寫等於沒學&#10;• https://some-article.com/ai-trends-2026&#10;• 昨天跟朋友聊到，做自媒體最難的是持續產出&#10;• 讀到 Naval 的一句話：Specific knowledge is found by pursuing your curiosity"></textarea>
+        <div class="textarea-footer">
+          <span class="char-count" id="char-count">0 字</span>
+          <span style="font-size:11px;color:#c9cdd5">支援中英文、連結、筆記、任何格式</span>
+        </div>
+        <button class="btn-brainwash" id="btn-brainwash" onclick="doBrainwash()">
+          ✨ 餵食 AI 大腦（Brainwash & Compile）
+        </button>
+        <div class="input-tips">
+          <span style="font-size:11px;color:#9ca3af">快速範例：</span>
+          <span class="input-tip" onclick="insertSample('insight')">💡 個人觀點</span>
+          <span class="input-tip" onclick="insertSample('article')">📰 文章筆記</span>
+          <span class="input-tip" onclick="insertSample('quote')">💬 金句摘錄</span>
+          <span class="input-tip" onclick="insertSample('idea')">🚀 創業點子</span>
+        </div>
+      </div>
+
+      <!-- Right: Wiki View -->
+      <div class="panel-card">
+        <div class="wiki-header">
+          <div class="panel-title">🧠 你的個人知識 Wiki（第二大腦）</div>
+          <div class="wiki-count" id="wiki-count">2 個主題</div>
+        </div>
+        <div class="panel-subtitle">AI 自動將你的雜亂輸入歸類、結構化成知識卡片</div>
+        <div class="wiki-content" id="wiki-content"></div>
+        <div class="wiki-actions">
+          <button class="btn-wiki-action" onclick="copyWiki()">📋 複製全部</button>
+          <button class="btn-wiki-action" onclick="clearWiki()">🗑️ 清空重來</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Draft Modal -->
+<div class="modal-overlay" id="draft-modal" onclick="closeDraftModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">🚀 用你的大腦草擬一篇 Threads</div>
+    <div class="modal-subtitle">AI 會參考你的知識 Wiki，生成一篇帶有你個人觀點的 Threads 貼文</div>
+    <label style="font-size:12px;font-weight:700;color:#9ca3af;letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:8px">你想聊什麼主題？</label>
+    <textarea class="modal-textarea" id="draft-topic" placeholder="例如：分享我對 AI 工具的看法、聊聊為什麼持續輸出很重要…"></textarea>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeDraftModal()">取消</button>
+      <button class="btn-modal-go" id="btn-draft-go" onclick="doDraft()">✨ 生成 Threads 貼文</button>
+    </div>
+    <div class="modal-result" id="draft-result">
+      <div style="font-size:12px;font-weight:700;color:#9ca3af;margin-bottom:8px">📝 AI 草稿</div>
+      <div class="modal-result-card" id="draft-output"></div>
+      <div class="modal-result-footer">
+        <span style="font-size:11px;color:#9ca3af" id="draft-chars"></span>
+        <button class="btn-wiki-action" onclick="copyDraft()">📋 複製貼文</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ══════════════════════════════
+   SUPABASE AUTH
+══════════════════════════════ */
+const { createClient } = supabase;
+const sb = createClient(
+  'https://dhbawcjhabpoocioscic.supabase.co',
+  'sb_publishable_giI2XHwAcB92vdpOu0hxjA_h6y2i-LD'
+);
+
+async function checkAuth() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'replyai-test-complete.html'; return; }
+  const name = session.user.user_metadata?.name || session.user.email.split('@')[0];
+  document.getElementById('nav-name').textContent = name;
+  document.getElementById('loading').style.display = 'none';
+  loadWiki();
+}
+async function doLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'replyai-test-complete.html';
+}
+checkAuth();
+
+/* ══════════════════════════════
+   WIKI DATA (localStorage)
+══════════════════════════════ */
+const WIKI_KEY = 'rai_brain_wiki';
+
+const DEFAULT_WIKI = `## Web3 趨勢
+
+* 2026/04 認為 Layer 2 互通性是關鍵
+* DeFi 正在從「收益農場」轉向「真實收益」模式
+* 跨鏈橋的安全問題仍是最大風險
+
+## 個人價值觀
+
+* 堅信「輸出」才是最好的學習方法
+* 做自媒體最難的不是靈感，是持續性
+* 比起追求完美，先完成再迭代更重要
+
+## AI 工具觀察
+
+* GPT-4o 的多模態能力已經可以取代很多初階工作
+* 真正的護城河不是工具本身，而是用工具的人的思維框架
+`;
+
+function loadWiki() {
+  const saved = localStorage.getItem(WIKI_KEY);
+  const md = saved || DEFAULT_WIKI;
+  renderWiki(md);
+}
+
+function saveWiki(md) {
+  localStorage.setItem(WIKI_KEY, md);
+  renderWiki(md);
+}
+
+function renderWiki(md) {
+  const container = document.getElementById('wiki-content');
+  container.innerHTML = marked.parse(md);
+  // Count h2 headings
+  const count = (md.match(/^## /gm) || []).length;
+  document.getElementById('wiki-count').textContent = `${count} 個主題`;
+}
+
+function getWikiMd() {
+  return localStorage.getItem(WIKI_KEY) || DEFAULT_WIKI;
+}
+
+function copyWiki() {
+  const md = getWikiMd();
+  navigator.clipboard.writeText(md).catch(() => {
+    const t = document.createElement('textarea');
+    t.value = md; document.body.appendChild(t); t.select();
+    document.execCommand('copy'); document.body.removeChild(t);
+  });
+  showToast('📋 知識 Wiki 已複製！');
+}
+
+function clearWiki() {
+  if (!confirm('確定要清空你的知識 Wiki？此操作無法還原。')) return;
+  localStorage.removeItem(WIKI_KEY);
+  renderWiki(DEFAULT_WIKI);
+  showToast('🗑️ 已清空，已恢復範例內容');
+}
+
+/* ══════════════════════════════
+   OPENAI KEY MANAGEMENT
+══════════════════════════════ */
+const OPENAI_KEY_NAME = 'rai_openai_key';
+const getOpenAI = () => localStorage.getItem(OPENAI_KEY_NAME) || '';
+
+function ensureOpenAIKey() {
+  let key = getOpenAI();
+  if (key) return key;
+  key = prompt('請輸入你的 OpenAI API Key（sk-...）：\n\n這只會存在你的瀏覽器 localStorage，不會上傳到任何伺服器。');
+  if (!key || !key.startsWith('sk-')) {
+    showToast('⚠️ 需要有效的 OpenAI Key 才能使用 AI 功能');
+    return null;
+  }
+  localStorage.setItem(OPENAI_KEY_NAME, key);
+  showToast('✅ OpenAI Key 已儲存！');
+  return key;
+}
+
+/* ══════════════════════════════
+   BRAINWASH — Feed raw input to AI
+══════════════════════════════ */
+async function doBrainwash() {
+  const raw = document.getElementById('raw-input').value.trim();
+  if (!raw) { showToast('⚠️ 請先輸入一些內容'); return; }
+
+  const oKey = ensureOpenAIKey();
+  if (!oKey) return;
+
+  const btn = document.getElementById('btn-brainwash');
+  btn.disabled = true;
+  btn.innerHTML = '⚙️ AI 大腦消化中…';
+
+  const existingWiki = getWikiMd();
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${oKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `你是一位知識管理專家。用戶會丟給你一堆雜亂的筆記、想法、文章摘錄或連結。
+
+你的任務：
+1. 閱讀用戶的「現有知識 Wiki」和「新的原始輸入」
+2. 將新資訊整合進現有 Wiki 中，歸類到合適的主題下
+3. 如果有全新的主題，就新增一個 ## 標題
+4. 每個要點用 * 開頭，簡潔有力（15-40 字）
+5. 保留原有的所有內容，只新增/更新
+
+輸出格式：純 Markdown，使用 ## 作為主題標題，* 作為條目。
+不要輸出任何解釋，直接輸出整合後的完整 Wiki。`
+          },
+          {
+            role: 'user',
+            content: `【現有知識 Wiki】\n${existingWiki}\n\n【新的原始輸入】\n${raw}`
+          }
+        ],
+        temperature: 0.5,
+        max_tokens: 2000,
+      }),
+    });
+
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e?.error?.message || `OpenAI error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const newWiki = data.choices[0].message.content;
+    saveWiki(newWiki);
+    document.getElementById('raw-input').value = '';
+    document.getElementById('char-count').textContent = '0 字';
+    showToast('🧠 大腦已更新！新知識已整合進 Wiki');
+
+  } catch(e) {
+    let msg = e.message;
+    if (msg.includes('invalid_api_key') || msg.includes('Incorrect')) {
+      msg = 'OpenAI Key 無效，請重新設定';
+      localStorage.removeItem(OPENAI_KEY_NAME);
+    }
+    showToast('❌ ' + msg);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✨ 餵食 AI 大腦（Brainwash & Compile）';
+}
+
+/* ══════════════════════════════
+   DRAFT MODAL — Generate Threads post from Wiki
+══════════════════════════════ */
+function openDraftModal() {
+  document.getElementById('draft-modal').classList.add('open');
+  document.getElementById('draft-topic').focus();
+  document.getElementById('draft-result').classList.remove('show');
+}
+function closeDraftModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('draft-modal').classList.remove('open');
+}
+
+async function doDraft() {
+  const topic = document.getElementById('draft-topic').value.trim();
+  if (!topic) { showToast('⚠️ 請輸入你想聊的主題'); return; }
+
+  const oKey = ensureOpenAIKey();
+  if (!oKey) return;
+
+  const btn = document.getElementById('btn-draft-go');
+  btn.disabled = true;
+  btn.innerHTML = '⚙️ 生成中…';
+
+  const wiki = getWikiMd();
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${oKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `你是一位台灣頂尖的社群內容創作者，專門為 Threads 撰寫高互動貼文。
+
+你會收到用戶的「個人知識 Wiki」和他想聊的主題。
+請根據 Wiki 中的知識和觀點，生成一篇有靈魂、有個人觀點的 Threads 貼文。
+
+規則：
+- 繁體中文，自然口語
+- 150-300 字
+- 開頭要有 hook（吸引人的第一句話）
+- 融入用戶 Wiki 中的真實觀點，不說空話
+- 結尾帶一個互動問句
+- 最多 3 個 emoji
+- 直接輸出貼文內容，不要加任何標題或解釋`
+          },
+          {
+            role: 'user',
+            content: `【我的知識 Wiki】\n${wiki}\n\n【我想聊的主題】\n${topic}`
+          }
+        ],
+        temperature: 0.85,
+        max_tokens: 600,
+      }),
+    });
+
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e?.error?.message || `OpenAI error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const post = data.choices[0].message.content;
+    document.getElementById('draft-output').textContent = post;
+    document.getElementById('draft-chars').textContent = `${post.length} 字`;
+    document.getElementById('draft-result').classList.add('show');
+
+  } catch(e) {
+    let msg = e.message;
+    if (msg.includes('invalid_api_key') || msg.includes('Incorrect')) {
+      msg = 'OpenAI Key 無效';
+      localStorage.removeItem(OPENAI_KEY_NAME);
+    }
+    showToast('❌ ' + msg);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✨ 生成 Threads 貼文';
+}
+
+function copyDraft() {
+  const text = document.getElementById('draft-output').textContent;
+  navigator.clipboard.writeText(text).catch(() => {
+    const t = document.createElement('textarea');
+    t.value = text; document.body.appendChild(t); t.select();
+    document.execCommand('copy'); document.body.removeChild(t);
+  });
+  showToast('📋 貼文已複製！去 Threads 發布吧 🚀');
+}
+
+/* ══════════════════════════════
+   SAMPLE INSERTS
+══════════════════════════════ */
+const SAMPLES = {
+  insight: '我覺得現在做自媒體，最大的競爭優勢不是流量，而是你有沒有獨特的觀點。大家都在用 AI 寫文，但讀者能分辨出「有靈魂」和「沒靈魂」的差別。',
+  article: '今天讀了一篇關於 creator economy 的文章，重點：1) 未來創作者收入會從廣告轉向訂閱制 2) 小眾但忠實的受眾比大量粉絲更有價值 3) 跨平台分發是必須的',
+  quote: 'Naval Ravikant: "Specific knowledge is found by pursuing your genuine curiosity and passion rather than whatever is hot right now." 這句話完全打中我。',
+  idea: '突然想到一個產品點子：如果有一個工具可以把你平常的閱讀筆記、靈感碎片自動整理成一個「個人知識庫」，然後用這個知識庫來生成有你個人觀點的社群貼文，那就太猛了。',
+};
+
+function insertSample(type) {
+  const ta = document.getElementById('raw-input');
+  const current = ta.value;
+  ta.value = current ? current + '\n\n' + SAMPLES[type] : SAMPLES[type];
+  ta.focus();
+  updateCharCount();
+}
+
+/* ══════════════════════════════
+   HELPERS
+══════════════════════════════ */
+function updateCharCount() {
+  const len = document.getElementById('raw-input').value.length;
+  document.getElementById('char-count').textContent = `${len} 字`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+document.getElementById('raw-input').addEventListener('input', updateCharCount);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDraftModal();
+});
+</script>
+</body>
+</html>

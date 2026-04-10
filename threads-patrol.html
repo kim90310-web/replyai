@@ -271,12 +271,6 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f7fa; col
           <option value="pro">專業建議型</option>
           <option value="promo">推廣導流型</option>
         </select>
-        <select class="sel" id="time-range">
-          <option value="qdr:d">24 小時內</option>
-          <option value="qdr:w" selected>過去一週</option>
-          <option value="qdr:m">過去一個月</option>
-          <option value="">不限時間</option>
-        </select>
         <select class="sel" id="result-count">
           <option value="5">5 篇</option>
           <option value="8" selected>8 篇</option>
@@ -419,17 +413,19 @@ document.getElementById('gpt-usage-txt').textContent = `${gptUsed} 次`;
 let currentKw = '';
 let currentStyle = 'mix';
 
-async function searchThreads(keyword, num, tbs) {
+async function searchThreads(keyword, num) {
   const key = getSerper();
   if (!key) throw new Error('NO_SERPER');
 
+  // 放寬搜尋：不加 inurl:post、不加時間過濾，確保有結果
   const body = {
-    q: `site:threads.net inurl:post ${keyword}`,
+    q: `site:threads.net ${keyword}`,
     num: Math.min(num, 10),
     gl: 'tw',
     hl: 'zh-tw',
   };
-  if (tbs) body.tbs = tbs;
+
+  console.log('[Serper] 送出查詢：', body);
 
   const res = await fetch('https://google.serper.dev/search', {
     method: 'POST',
@@ -447,13 +443,26 @@ async function searchThreads(keyword, num, tbs) {
   }
 
   const data = await res.json();
-  return data.organic || [];
+  console.log('[Serper] 原始回傳資料：', data);
+  console.log('[Serper] organic 結果數：', (data.organic || []).length);
+
+  const raw = data.organic || [];
+
+  // 前端後處理：只保留包含 /post/ 的真實貼文，排除個人主頁
+  const posts = raw.filter(r => r.link && r.link.includes('/post/'));
+  console.log('[Serper] 過濾後（含 /post/）：', posts.length, '筆');
+  if (posts.length === 0 && raw.length > 0) {
+    console.log('[Serper] ⚠️ 有結果但全被過濾掉了，以下是被排除的網址：');
+    raw.forEach(r => console.log('  排除：', r.link));
+  }
+
+  return posts;
 }
 
 function parseSerperResults(items, keyword) {
   const COLORS = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#14b8a6','#f97316','#a855f7'];
   return items
-    .filter(r => r.link && r.link.includes('threads.net') && r.link.includes('/post/'))
+    .filter(r => r.link && r.link.includes('threads.net'))
     .map((r, i) => {
       // Extract @handle from URL: threads.net/@handle/post/...
       const match = r.link.match(/threads\.net\/@([^/?#]+)/);
@@ -488,8 +497,6 @@ async function doSearch() {
   currentKw = kw;
   currentStyle = document.getElementById('reply-style').value;
   const num = parseInt(document.getElementById('result-count').value);
-  const tbs = document.getElementById('time-range').value;
-  const timeLabel = document.getElementById('time-range').selectedOptions[0].text;
 
   const btn = document.getElementById('btn-search');
   btn.disabled = true;
@@ -499,11 +506,11 @@ async function doSearch() {
     <div style="text-align:center;padding:48px 20px">
       <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
       <div style="font-size:14px;color:#9ca3af;margin-top:10px">正在從 Threads 搜尋「${kw}」相關貼文…</div>
-      <div style="font-size:12px;color:#d1d5db;margin-top:5px">篩選條件：${timeLabel} · 僅限單篇貼文（inurl:post）</div>
+      <div style="font-size:12px;color:#d1d5db;margin-top:5px">透過 Google Serper 搜尋 site:threads.net</div>
     </div>`;
 
   try {
-    const raw = await searchThreads(kw, num, tbs);
+    const raw = await searchThreads(kw, num);
     incSerper();
 
     if (!raw.length) {
@@ -536,7 +543,7 @@ function renderResults(posts, kw) {
       <div class="results-count">找到 <span>${posts.length}</span> 篇真實 Threads 貼文</div>
       <div class="results-source">
         <span class="source-dot"></span>
-        即時搜尋 · inurl:post · ${document.getElementById('time-range').selectedOptions[0].text}
+        Google Serper 即時搜尋 · site:threads.net ${kw}
       </div>
     </div>
     ${posts.map(p => {

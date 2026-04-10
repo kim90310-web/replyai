@@ -9,245 +9,168 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f7fa; color: #111; min-height: 100vh; }
 
-/* ── Loading overlay ── */
-#loading {
-  position: fixed; inset: 0; background: #fff;
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 14px; z-index: 999;
-}
-.spinner { width: 34px; height: 34px; border: 3px solid #e5e7eb; border-top-color: #00d4f5; border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* ── Loading ── */
+#loading { position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:999; }
+.spinner { width:34px;height:34px;border:3px solid #e5e7eb;border-top-color:#00d4f5;border-radius:50%;animation:spin .7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
 
 /* ── Navbar ── */
-.nav {
-  height: 60px; background: #fff; border-bottom: 1px solid #e5e7eb;
-  display: flex; align-items: center; padding: 0 24px; gap: 12px;
-  position: sticky; top: 0; z-index: 100;
+.nav { height:60px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:100; }
+.nav-logo { display:flex;align-items:center;gap:8px;font-size:18px;font-weight:800;letter-spacing:-.03em;text-decoration:none;color:inherit; }
+.nav-logo-mark { width:28px;height:28px;background:linear-gradient(135deg,#00d4f5,#7b2ff7);border-radius:7px;display:grid;place-items:center; }
+.nav-logo span { color:#00d4f5; }
+.nav-divider { width:1px;height:20px;background:#e5e7eb; }
+.nav-page-title { font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;gap:6px; }
+.nav-right { margin-left:auto;display:flex;align-items:center;gap:10px; }
+.nav-user { font-size:13px;font-weight:600;color:#374151; }
+.btn-sm { padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid #e5e7eb;background:#fff;color:#374151;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:5px; }
+.btn-sm:hover { background:#f9fafb;border-color:#d1d5db; }
+
+/* ── API Key Banner ── */
+#key-banner {
+  background:linear-gradient(135deg,rgba(0,212,245,.08),rgba(123,47,247,.08));
+  border:1.5px solid rgba(0,212,245,.3); border-radius:12px;
+  padding:16px 20px; margin-bottom:20px;
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
 }
-.nav-logo { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800; letter-spacing: -.03em; text-decoration: none; color: inherit; }
-.nav-logo-mark { width: 28px; height: 28px; background: linear-gradient(135deg,#00d4f5,#7b2ff7); border-radius: 7px; display: grid; place-items: center; }
-.nav-logo span { color: #00d4f5; }
-.nav-divider { width: 1px; height: 20px; background: #e5e7eb; }
-.nav-page-title { font-size: 14px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 6px; }
-.nav-page-title .icon { font-size: 16px; }
-.nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.nav-user { font-size: 13px; font-weight: 600; color: #374151; }
-.btn-sm {
-  padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
-  cursor: pointer; border: 1.5px solid #e5e7eb; background: #fff; color: #374151;
-  transition: all .2s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+#key-banner.hidden { display:none; }
+.key-banner-icon { font-size:24px; flex-shrink:0; }
+.key-banner-text { flex:1; min-width:200px; }
+.key-banner-text strong { font-size:14px;font-weight:700;color:#374151; }
+.key-banner-text p { font-size:12px;color:#6b7280;margin-top:2px; }
+.key-input-row { display:flex;gap:8px;flex:1;min-width:260px; }
+.key-input {
+  flex:1; padding:9px 14px; border:1.5px solid #e5e7eb; border-radius:8px;
+  font-size:13px; font-family:monospace; outline:none; color:#374151;
+  background:#fff; transition:border-color .2s;
 }
-.btn-sm:hover { background: #f9fafb; border-color: #d1d5db; }
-.btn-primary {
-  background: linear-gradient(135deg,#00d4f5,#7b2ff7); color: #fff;
-  border-color: transparent;
+.key-input:focus { border-color:#00d4f5; }
+.btn-save-key {
+  padding:9px 16px; background:linear-gradient(135deg,#00d4f5,#7b2ff7);
+  color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700;
+  cursor:pointer; white-space:nowrap;
 }
-.btn-primary:hover { opacity: .88; background: linear-gradient(135deg,#00d4f5,#7b2ff7); }
+.btn-save-key:hover { opacity:.88; }
+.key-status-ok {
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:600;color:#10b981;
+}
 
 /* ── Layout ── */
-.layout { display: flex; min-height: calc(100vh - 60px); }
+.layout { display:flex;min-height:calc(100vh - 60px); }
 
 /* ── Sidebar ── */
-.sidebar {
-  width: 220px; flex-shrink: 0; background: #fff;
-  border-right: 1px solid #e5e7eb; padding: 20px 12px;
-  position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto;
-}
-.sidebar-section { font-size: 11px; font-weight: 700; color: #9ca3af; letter-spacing: .06em; text-transform: uppercase; padding: 0 8px; margin: 0 0 8px; }
-.sidebar-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 600;
-  color: #6b7280; cursor: pointer; transition: all .15s; text-decoration: none;
-  margin-bottom: 2px;
-}
-.sidebar-item:hover { background: #f3f4f6; color: #111; }
-.sidebar-item.active { background: rgba(0,212,245,.1); color: #00d4f5; }
-.sidebar-item .si-icon { font-size: 16px; width: 20px; text-align: center; }
-.sidebar-badge {
-  margin-left: auto; font-size: 9px; font-weight: 700;
-  padding: 1px 6px; border-radius: 8px; background: rgba(0,212,245,.15); color: #00d4f5;
-}
-.sidebar-coming { opacity: .5; cursor: not-allowed; }
+.sidebar { width:220px;flex-shrink:0;background:#fff;border-right:1px solid #e5e7eb;padding:20px 12px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto; }
+.sidebar-section { font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:.06em;text-transform:uppercase;padding:0 8px;margin:0 0 8px; }
+.sidebar-item { display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;transition:all .15s;text-decoration:none;margin-bottom:2px; }
+.sidebar-item:hover { background:#f3f4f6;color:#111; }
+.sidebar-item.active { background:rgba(0,212,245,.1);color:#00d4f5; }
+.sidebar-item .si-icon { font-size:16px;width:20px;text-align:center; }
+.sidebar-badge { margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:rgba(0,212,245,.15);color:#00d4f5; }
+.sidebar-coming { opacity:.5;cursor:not-allowed; }
+.usage-bar-wrap { margin-top:20px;padding:14px;background:rgba(0,212,245,.05);border:1px solid rgba(0,212,245,.15);border-radius:10px; }
+.usage-bar-top { display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:8px; }
+.usage-bar-top span:first-child { color:#374151; }
+.usage-bar-top span:last-child { color:#00d4f5; }
+.usage-bar { height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden; }
+.usage-bar-fill { height:100%;background:linear-gradient(90deg,#00d4f5,#7b2ff7);border-radius:3px;transition:width .4s ease; }
 
 /* ── Main ── */
-.main { flex: 1; padding: 32px 36px; max-width: 900px; }
-
-/* ── Page header ── */
-.page-header { margin-bottom: 28px; }
-.page-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -.03em; margin-bottom: 6px; }
-.page-header h1 span { color: #00d4f5; }
-.page-header p { font-size: 14px; color: #6b7280; }
+.main { flex:1;padding:32px 36px;max-width:900px; }
+.page-header { margin-bottom:24px; }
+.page-header h1 { font-size:26px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px; }
+.page-header h1 span { color:#00d4f5; }
+.page-header p { font-size:14px;color:#6b7280; }
 
 /* ── Search panel ── */
-.search-panel {
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
-  padding: 24px; margin-bottom: 28px;
-}
-.search-panel h2 { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: #374151; }
-.search-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
-.search-input-wrap { flex: 1; min-width: 200px; position: relative; }
-.search-input-wrap input {
-  width: 100%; padding: 12px 16px 12px 42px;
-  border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 14px;
-  outline: none; transition: border-color .2s; color: #111;
-  background: #f9fafb;
-}
-.search-input-wrap input:focus { border-color: #00d4f5; background: #fff; }
-.search-input-wrap .search-icon {
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  color: #9ca3af; font-size: 16px;
-}
-.search-options { display: flex; gap: 8px; flex-wrap: wrap; }
-.select-field {
-  padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px;
-  font-size: 13px; font-weight: 500; color: #374151; background: #f9fafb;
-  outline: none; cursor: pointer; transition: border-color .2s;
-}
-.select-field:focus { border-color: #00d4f5; }
-.btn-search {
-  padding: 12px 22px; background: linear-gradient(135deg,#00d4f5,#7b2ff7);
-  color: #fff; border: none; border-radius: 10px;
-  font-size: 14px; font-weight: 700; cursor: pointer;
-  transition: opacity .2s; white-space: nowrap;
-  display: flex; align-items: center; gap: 7px;
-}
-.btn-search:hover { opacity: .88; }
-.btn-search:disabled { opacity: .5; cursor: not-allowed; }
-.search-tips { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-.tip-tag {
-  padding: 5px 12px; border: 1.5px dashed #e5e7eb; border-radius: 20px;
-  font-size: 12px; color: #9ca3af; cursor: pointer; transition: all .15s;
-}
-.tip-tag:hover { border-color: #00d4f5; color: #00d4f5; background: rgba(0,212,245,.05); }
+.search-panel { background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px;margin-bottom:24px; }
+.search-panel h2 { font-size:15px;font-weight:700;margin-bottom:16px;color:#374151; }
+.search-row { display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap; }
+.search-input-wrap { flex:1;min-width:200px;position:relative; }
+.search-input-wrap input { width:100%;padding:12px 16px 12px 42px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;transition:border-color .2s;color:#111;background:#f9fafb; }
+.search-input-wrap input:focus { border-color:#00d4f5;background:#fff; }
+.search-input-wrap .search-icon { position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:16px; }
+.select-field { padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-weight:500;color:#374151;background:#f9fafb;outline:none;cursor:pointer;transition:border-color .2s; }
+.select-field:focus { border-color:#00d4f5; }
+.btn-search { padding:12px 22px;background:linear-gradient(135deg,#00d4f5,#7b2ff7);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap;display:flex;align-items:center;gap:7px; }
+.btn-search:hover { opacity:.88; }
+.btn-search:disabled { opacity:.5;cursor:not-allowed; }
+.search-tips { margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center; }
+.tip-tag { padding:5px 12px;border:1.5px dashed #e5e7eb;border-radius:20px;font-size:12px;color:#9ca3af;cursor:pointer;transition:all .15s; }
+.tip-tag:hover { border-color:#00d4f5;color:#00d4f5;background:rgba(0,212,245,.05); }
 
-/* ── Results header ── */
-.results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.results-count { font-size: 14px; font-weight: 600; color: #374151; }
-.results-count span { color: #00d4f5; }
+/* ── Results ── */
+.results-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+.results-count { font-size:14px;font-weight:600;color:#374151; }
+.results-count span { color:#00d4f5; }
+.results-meta { font-size:12px;color:#9ca3af; }
 
 /* ── Post card ── */
-.post-card {
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
-  padding: 20px; margin-bottom: 14px; transition: border-color .2s;
-}
-.post-card:hover { border-color: #d1d5db; }
-.post-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
-.post-avatar {
-  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-  display: grid; place-items: center; font-weight: 700; color: #fff; font-size: 15px;
-}
-.post-meta { flex: 1; min-width: 0; }
-.post-username { font-size: 14px; font-weight: 700; color: #111; }
-.post-handle { font-size: 12px; color: #9ca3af; margin-top: 1px; }
-.post-time { font-size: 12px; color: #9ca3af; margin-left: auto; flex-shrink: 0; }
-.post-content { font-size: 14px; line-height: 1.65; color: #374151; margin-bottom: 14px; }
-.post-content .keyword-highlight { color: #00d4f5; font-weight: 700; }
-.post-stats { display: flex; gap: 16px; align-items: center; }
-.post-stat { font-size: 12px; color: #9ca3af; display: flex; align-items: center; gap: 4px; }
-.post-actions { margin-left: auto; display: flex; gap: 8px; }
-.btn-generate {
-  padding: 7px 16px; background: linear-gradient(135deg,#00d4f5,#7b2ff7);
-  color: #fff; border: none; border-radius: 8px;
-  font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity .2s;
-  display: flex; align-items: center; gap: 5px;
-}
-.btn-generate:hover { opacity: .88; }
-.btn-generate:disabled { opacity: .5; cursor: not-allowed; }
-.btn-replied {
-  padding: 7px 16px; border: 1.5px solid #10b981; background: rgba(16,185,129,.08);
-  color: #10b981; border-radius: 8px; font-size: 12px; font-weight: 700;
-  display: flex; align-items: center; gap: 5px;
-}
+.post-card { background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:20px;margin-bottom:14px;transition:border-color .2s; }
+.post-card:hover { border-color:#d1d5db; }
+.post-header { display:flex;align-items:flex-start;gap:12px;margin-bottom:12px; }
+.post-avatar { width:40px;height:40px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-weight:700;color:#fff;font-size:15px; }
+.post-meta { flex:1;min-width:0; }
+.post-username { font-size:14px;font-weight:700;color:#111; }
+.post-handle { font-size:12px;color:#9ca3af;margin-top:1px; }
+.post-time { font-size:12px;color:#9ca3af;flex-shrink:0; }
+.post-content { font-size:14px;line-height:1.65;color:#374151;margin-bottom:14px; }
+.keyword-highlight { color:#00d4f5;font-weight:700; }
+.post-stats { display:flex;gap:16px;align-items:center; }
+.post-stat { font-size:12px;color:#9ca3af;display:flex;align-items:center;gap:4px; }
+.post-actions { margin-left:auto;display:flex;gap:8px; }
+.btn-generate { padding:7px 16px;background:linear-gradient(135deg,#00d4f5,#7b2ff7);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;gap:5px; }
+.btn-generate:hover { opacity:.88; }
+.btn-generate:disabled { opacity:.5;cursor:not-allowed; }
+.gpt-badge { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(16,163,127,.1);color:#10a37f;margin-left:6px; }
 
 /* ── Reply panel ── */
-.reply-panel {
-  margin-top: 16px; padding-top: 16px;
-  border-top: 1px solid #f3f4f6;
-  display: none;
-}
-.reply-panel.open { display: block; }
-.reply-panel-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 14px;
-}
-.reply-panel-title { font-size: 13px; font-weight: 700; color: #374151; }
-.style-tabs { display: flex; gap: 6px; }
-.style-tab {
-  padding: 5px 12px; border: 1.5px solid #e5e7eb; border-radius: 20px;
-  font-size: 11px; font-weight: 700; color: #9ca3af; cursor: pointer; transition: all .15s;
-  background: #fff;
-}
-.style-tab.active { border-color: #00d4f5; color: #00d4f5; background: rgba(0,212,245,.07); }
-.reply-options { display: flex; flex-direction: column; gap: 10px; }
-.reply-option {
-  background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 10px;
-  padding: 14px 16px; position: relative; transition: border-color .15s;
-}
-.reply-option:hover { border-color: #d1d5db; }
-.reply-option-label {
-  font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
-  color: #9ca3af; margin-bottom: 6px;
-}
-.reply-text { font-size: 13px; line-height: 1.65; color: #374151; }
-.reply-option-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-.reply-chars { font-size: 11px; color: #9ca3af; }
-.btn-copy {
-  padding: 5px 12px; border: 1.5px solid #e5e7eb; border-radius: 7px;
-  background: #fff; font-size: 11px; font-weight: 700; color: #374151;
-  cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 4px;
-}
-.btn-copy:hover { border-color: #00d4f5; color: #00d4f5; background: rgba(0,212,245,.05); }
-.btn-copy.copied { border-color: #10b981; color: #10b981; background: rgba(16,185,129,.05); }
+.reply-panel { margin-top:16px;padding-top:16px;border-top:1px solid #f3f4f6;display:none; }
+.reply-panel.open { display:block; }
+.reply-panel-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:14px; }
+.reply-panel-title { font-size:13px;font-weight:700;color:#374151;display:flex;align-items:center;gap:6px; }
+.reply-options { display:flex;flex-direction:column;gap:10px; }
+.reply-option { background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:14px 16px;transition:border-color .15s; }
+.reply-option:hover { border-color:#d1d5db; }
+.reply-option-label { font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#9ca3af;margin-bottom:6px; }
+.reply-text { font-size:13px;line-height:1.65;color:#374151; }
+.reply-option-footer { display:flex;align-items:center;justify-content:space-between;margin-top:10px; }
+.reply-chars { font-size:11px;color:#9ca3af; }
+.btn-copy { padding:5px 12px;border:1.5px solid #e5e7eb;border-radius:7px;background:#fff;font-size:11px;font-weight:700;color:#374151;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px; }
+.btn-copy:hover { border-color:#00d4f5;color:#00d4f5; }
+.btn-copy.copied { border-color:#10b981;color:#10b981;background:rgba(16,185,129,.05); }
 
-/* ── Generating animation ── */
-.generating-dots {
-  display: flex; gap: 5px; align-items: center;
-  padding: 20px; justify-content: center;
-}
-.dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: linear-gradient(135deg,#00d4f5,#7b2ff7);
-  animation: bounce .8s ease-in-out infinite;
-}
-.dot:nth-child(2) { animation-delay: .15s; }
-.dot:nth-child(3) { animation-delay: .3s; }
-@keyframes bounce { 0%,80%,100%{transform:scale(.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
+/* ── Generating dots ── */
+.generating-dots { display:flex;gap:5px;align-items:center;padding:20px;justify-content:center; }
+.dot { width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#00d4f5,#7b2ff7);animation:bounce .8s ease-in-out infinite; }
+.dot:nth-child(2){animation-delay:.15s} .dot:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
 
-/* ── Empty / Initial state ── */
-.empty-state {
-  text-align: center; padding: 60px 20px; color: #9ca3af;
-}
-.empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
-.empty-state h3 { font-size: 16px; font-weight: 700; color: #374151; margin-bottom: 8px; }
-.empty-state p { font-size: 14px; line-height: 1.6; }
+/* ── Empty state ── */
+.empty-state { text-align:center;padding:60px 20px;color:#9ca3af; }
+.empty-state .empty-icon { font-size:48px;margin-bottom:16px; }
+.empty-state h3 { font-size:16px;font-weight:700;color:#374151;margin-bottom:8px; }
+
+/* ── Error state ── */
+.error-card { background:#fff5f5;border:1.5px solid #fecaca;border-radius:10px;padding:16px 20px;margin-bottom:14px;font-size:13px;color:#ef4444; }
 
 /* ── Toast ── */
-#toast {
-  position: fixed; bottom: 28px; right: 28px; z-index: 9999;
-  background: #111; color: #fff; padding: 12px 20px; border-radius: 10px;
-  font-size: 13px; font-weight: 600;
-  display: flex; align-items: center; gap: 8px;
-  transform: translateY(80px); opacity: 0;
-  transition: all .3s cubic-bezier(.34,1.56,.64,1);
-  pointer-events: none;
-}
-#toast.show { transform: translateY(0); opacity: 1; }
+#toast { position:fixed;bottom:28px;right:28px;z-index:9999;background:#111;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none; }
+#toast.show { transform:translateY(0);opacity:1; }
 
-/* ── Usage bar ── */
-.usage-bar-wrap { margin-top: 24px; padding: 16px; background: rgba(0,212,245,.05); border: 1px solid rgba(0,212,245,.15); border-radius: 10px; }
-.usage-bar-top { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
-.usage-bar-top span:first-child { color: #374151; }
-.usage-bar-top span:last-child { color: #00d4f5; }
-.usage-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
-.usage-bar-fill { height: 100%; background: linear-gradient(90deg,#00d4f5,#7b2ff7); border-radius: 3px; transition: width .4s ease; }
+/* ── Settings modal ── */
+.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px; }
+.modal-overlay.hidden { display:none; }
+.modal { background:#fff;border-radius:16px;padding:32px;max-width:480px;width:100%; }
+.modal h2 { font-size:20px;font-weight:800;margin-bottom:8px; }
+.modal p { font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:20px; }
+.modal-input { width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:monospace;outline:none;margin-bottom:12px;color:#374151; }
+.modal-input:focus { border-color:#00d4f5; }
+.modal-actions { display:flex;gap:10px; }
+.btn-modal-primary { flex:1;padding:11px;background:linear-gradient(135deg,#00d4f5,#7b2ff7);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer; }
+.btn-modal-secondary { padding:11px 20px;border:1.5px solid #e5e7eb;background:#fff;border-radius:8px;font-size:14px;font-weight:600;color:#374151;cursor:pointer; }
 
-/* ── Mobile ── */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .main { padding: 20px 16px; }
-  .search-row { flex-direction: column; }
-  .btn-search { width: 100%; justify-content: center; }
-}
+@media(max-width:768px){.sidebar{display:none}.main{padding:20px 16px}.search-row{flex-direction:column}.btn-search{width:100%;justify-content:center}}
 </style>
 </head>
 <body>
@@ -255,77 +178,62 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f7fa; col
 <!-- Loading overlay -->
 <div id="loading">
   <div style="width:40px;height:40px;background:linear-gradient(135deg,#00d4f5,#7b2ff7);border-radius:10px;display:grid;place-items:center">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/>
-    </svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/></svg>
   </div>
   <div class="spinner"></div>
   <p style="font-size:14px;color:#9ca3af">驗證登入狀態…</p>
+</div>
+
+<!-- API Key 設定 Modal -->
+<div class="modal-overlay hidden" id="key-modal">
+  <div class="modal">
+    <h2>🔑 設定 OpenAI API Key</h2>
+    <p>輸入你的 OpenAI API Key，即可啟用 GPT-4o 真實 AI 回覆生成。<br>Key 僅存在你的瀏覽器，不會上傳至任何伺服器。</p>
+    <input class="modal-input" id="modal-key-input" type="password" placeholder="sk-proj-..." autocomplete="off"/>
+    <div style="font-size:11px;color:#9ca3af;margin-bottom:16px">
+      🔒 安全儲存於 localStorage，隨時可刪除
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-secondary" onclick="closeKeyModal()">取消</button>
+      <button class="btn-modal-primary" onclick="saveKeyFromModal()">儲存並啟用</button>
+    </div>
+  </div>
 </div>
 
 <!-- Navbar -->
 <nav class="nav">
   <a class="nav-logo" href="dashboard.html">
     <div class="nav-logo-mark">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/>
-      </svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.37a1 1 0 0 0 .91 1.63H11l-2 8 8.91-10.37A1 1 0 0 0 17 10H11l2-8z" fill="white"/></svg>
     </div>
     Reply<span>AI</span>
   </a>
   <div class="nav-divider"></div>
-  <div class="nav-page-title"><span class="icon">🔍</span> Threads 海巡</div>
+  <div class="nav-page-title"><span>🔍</span> Threads 海巡</div>
   <div class="nav-right">
     <span class="nav-user" id="nav-name">載入中…</span>
-    <a class="btn-sm" href="dashboard.html">← 後台首頁</a>
+    <button class="btn-sm" onclick="openKeyModal()" title="設定 API Key">⚙️ AI 設定</button>
+    <a class="btn-sm" href="dashboard.html">← 後台</a>
     <button class="btn-sm" onclick="doLogout()">登出</button>
   </div>
 </nav>
 
 <div class="layout">
-
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-section" style="margin-top:4px">功能</div>
-    <a class="sidebar-item active" href="threads-patrol.html">
-      <span class="si-icon">🔍</span> Threads 海巡
-    </a>
-    <div class="sidebar-item sidebar-coming">
-      <span class="si-icon">✍️</span> AI 發文生成
-      <span class="sidebar-badge">即將上線</span>
-    </div>
-    <div class="sidebar-item sidebar-coming">
-      <span class="si-icon">🎠</span> 輪播圖生成
-      <span class="sidebar-badge">即將上線</span>
-    </div>
-    <div class="sidebar-item sidebar-coming">
-      <span class="si-icon">📅</span> 發文排程
-      <span class="sidebar-badge">即將上線</span>
-    </div>
-    <div class="sidebar-item sidebar-coming">
-      <span class="si-icon">📱</span> 帳號托管
-      <span class="sidebar-badge">即將上線</span>
-    </div>
-    <div class="sidebar-item sidebar-coming">
-      <span class="si-icon">📊</span> 數據總覽
-      <span class="sidebar-badge">即將上線</span>
-    </div>
-
+    <a class="sidebar-item active" href="threads-patrol.html"><span class="si-icon">🔍</span> Threads 海巡</a>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">✍️</span> AI 發文生成<span class="sidebar-badge">即將上線</span></div>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">🎠</span> 輪播圖生成<span class="sidebar-badge">即將上線</span></div>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">📅</span> 發文排程<span class="sidebar-badge">即將上線</span></div>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">📱</span> 帳號托管<span class="sidebar-badge">即將上線</span></div>
+    <div class="sidebar-item sidebar-coming"><span class="si-icon">📊</span> 數據總覽<span class="sidebar-badge">即將上線</span></div>
     <div class="sidebar-section" style="margin-top:20px">帳號</div>
-    <a class="sidebar-item" href="dashboard.html">
-      <span class="si-icon">🏠</span> 後台首頁
-    </a>
-
-    <!-- Usage -->
-    <div class="usage-bar-wrap" style="margin-top:20px">
-      <div class="usage-bar-top">
-        <span>今日回覆用量</span>
-        <span id="usage-text">3 / 20</span>
-      </div>
-      <div class="usage-bar">
-        <div class="usage-bar-fill" id="usage-fill" style="width:15%"></div>
-      </div>
-      <div style="font-size:11px;color:#9ca3af;margin-top:6px">免費方案每日 20 次生成</div>
+    <a class="sidebar-item" href="dashboard.html"><span class="si-icon">🏠</span> 後台首頁</a>
+    <div class="usage-bar-wrap">
+      <div class="usage-bar-top"><span>今日 AI 用量</span><span id="usage-text">0 / ∞</span></div>
+      <div class="usage-bar"><div class="usage-bar-fill" id="usage-fill" style="width:0%"></div></div>
+      <div style="font-size:11px;color:#9ca3af;margin-top:6px">用量依 OpenAI 帳號計費</div>
     </div>
   </aside>
 
@@ -333,7 +241,28 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f7fa; col
   <main class="main">
     <div class="page-header">
       <h1>Threads <span>海巡</span></h1>
-      <p>輸入關鍵字，找到目標貼文，AI 自動生成最適合的回覆文案</p>
+      <p>輸入關鍵字，找到目標貼文，GPT-4o 生成最佳回覆文案</p>
+    </div>
+
+    <!-- API Key Banner -->
+    <div id="key-banner" class="hidden">
+      <div class="key-banner-icon">🔑</div>
+      <div class="key-banner-text">
+        <strong>尚未設定 OpenAI API Key</strong>
+        <p>設定後即可啟用真實 AI 回覆生成（GPT-4o）</p>
+      </div>
+      <div class="key-input-row">
+        <input class="key-input" id="banner-key-input" type="password" placeholder="sk-proj-..." autocomplete="off"/>
+        <button class="btn-save-key" onclick="saveKeyFromBanner()">啟用 AI</button>
+      </div>
+    </div>
+
+    <!-- Key OK indicator (shown when key is set) -->
+    <div id="key-ok-banner" class="hidden" style="margin-bottom:16px;padding:12px 16px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:10px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#10b981">
+        <span>✅</span> GPT-4o 已啟用，準備開始海巡
+      </div>
+      <button onclick="clearKey()" style="font-size:12px;color:#9ca3af;background:none;border:none;cursor:pointer;">移除 Key</button>
     </div>
 
     <!-- Search panel -->
@@ -345,15 +274,15 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f7fa; col
           <input type="text" id="keyword-input" placeholder="輸入關鍵字，例如：咖啡、健身、AI工具…" autocomplete="off"/>
         </div>
         <select class="select-field" id="reply-style">
-          <option value="mix">混合風格</option>
-          <option value="friendly">輕鬆互動</option>
-          <option value="pro">專業建議</option>
-          <option value="promo">推廣導流</option>
+          <option value="mix">三種風格混合</option>
+          <option value="friendly">互動共鳴型</option>
+          <option value="pro">專業建議型</option>
+          <option value="promo">推廣導流型</option>
         </select>
         <select class="select-field" id="result-count">
-          <option value="5">5 篇貼文</option>
-          <option value="8" selected>8 篇貼文</option>
-          <option value="12">12 篇貼文</option>
+          <option value="5">5 篇</option>
+          <option value="8" selected>8 篇</option>
+          <option value="12">12 篇</option>
         </select>
         <button class="btn-search" id="btn-search" onclick="doSearch()">
           <span>🚀</span> 開始海巡
@@ -370,22 +299,23 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f7fa; col
       </div>
     </div>
 
-    <!-- Results area -->
+    <!-- Results -->
     <div id="results-area">
       <div class="empty-state">
         <div class="empty-icon">🔭</div>
         <h3>準備好開始海巡了嗎？</h3>
-        <p>輸入你想監控的關鍵字<br>AI 將幫你找到相關 Threads 貼文並生成最佳回覆</p>
+        <p style="font-size:14px">輸入關鍵字後，AI 將生成目標貼文並產生真實回覆</p>
       </div>
     </div>
   </main>
 </div>
 
-<!-- Toast -->
-<div id="toast">✅ 已複製到剪貼簿</div>
+<div id="toast">✅ 已複製</div>
 
 <script>
-/* ── Supabase Auth ── */
+/* ══════════════════════════════════════════
+   SUPABASE AUTH
+══════════════════════════════════════════ */
 const { createClient } = supabase;
 const sb = createClient('https://dhbawcjhabpoocioscic.supabase.co','sb_publishable_giI2XHwAcB92vdpOu0hxjA_h6y2i-LD');
 
@@ -396,6 +326,7 @@ async function checkAuth() {
   const name = user.user_metadata?.name || user.email.split('@')[0];
   document.getElementById('nav-name').textContent = name;
   document.getElementById('loading').style.display = 'none';
+  initKeyUI();
 }
 async function doLogout() {
   await sb.auth.signOut();
@@ -403,225 +334,180 @@ async function doLogout() {
 }
 checkAuth();
 
-/* ── State ── */
-let usageCount = 3;
-const MAX_DAILY = 20;
+/* ══════════════════════════════════════════
+   API KEY MANAGEMENT
+══════════════════════════════════════════ */
+const KEY_STORE = 'replyai_openai_key';
+
+function getKey() { return localStorage.getItem(KEY_STORE) || ''; }
+
+function initKeyUI() {
+  const key = getKey();
+  document.getElementById('key-banner').classList.toggle('hidden', !!key);
+  document.getElementById('key-ok-banner').classList.toggle('hidden', !key);
+}
+
+function saveKeyFromBanner() {
+  const k = document.getElementById('banner-key-input').value.trim();
+  if (!k.startsWith('sk-')) { showToast('⚠️ Key 格式不正確，應以 sk- 開頭'); return; }
+  localStorage.setItem(KEY_STORE, k);
+  initKeyUI();
+  showToast('✅ API Key 已儲存！');
+}
+
+function saveKeyFromModal() {
+  const k = document.getElementById('modal-key-input').value.trim();
+  if (!k.startsWith('sk-')) { showToast('⚠️ Key 格式不正確'); return; }
+  localStorage.setItem(KEY_STORE, k);
+  closeKeyModal();
+  initKeyUI();
+  showToast('✅ API Key 已更新！');
+}
+
+function clearKey() {
+  if (!confirm('確定要移除 API Key？移除後 AI 功能將停用。')) return;
+  localStorage.removeItem(KEY_STORE);
+  initKeyUI();
+  showToast('🗑️ API Key 已移除');
+}
+
+function openKeyModal() {
+  document.getElementById('key-modal').classList.remove('hidden');
+  const k = getKey();
+  if (k) document.getElementById('modal-key-input').value = k;
+}
+function closeKeyModal() { document.getElementById('key-modal').classList.add('hidden'); }
+
+/* ══════════════════════════════════════════
+   MOCK POST GENERATOR
+   (模擬 Threads 貼文，因為官方API不支援關鍵字搜尋)
+══════════════════════════════════════════ */
+const POST_TEMPLATES = [
+  (kw) => ({ type:'question',  text:`有人可以推薦${kw}的入門方法嗎？最近很想開始但不知道從哪裡著手 😅` }),
+  (kw) => ({ type:'share',     text:`今天認真研究了一下${kw}，發現真的比想像中有趣！有在做的朋友嗎 🙌` }),
+  (kw) => ({ type:'frustration',text:`說實話，${kw}的資訊太多了，根本不知道哪個才是對的 😩 有人幫我整理一下嗎` }),
+  (kw) => ({ type:'opinion',   text:`我覺得大家對${kw}的誤解很深，其實完全不是那麼一回事 🤔` }),
+  (kw) => ({ type:'success',   text:`靠${kw}這三個月真的改變不少，之前一直以為太難，其實沒有想像中複雜 💪` }),
+  (kw) => ({ type:'question',  text:`請問有關於${kw}的書籍或課程推薦嗎？新手想認真學習 📚` }),
+  (kw) => ({ type:'share',     text:`${kw}加入日常之後效率提升好多！真心推薦大家可以試試 ✨` }),
+  (kw) => ({ type:'debate',    text:`${kw}到底適不適合初學者？每個人說法都不一樣，好困惑 😂` }),
+  (kw) => ({ type:'milestone', text:`用${kw}滿一年了 🎉 回頭看當時的自己成長好多，感謝一路支持` }),
+  (kw) => ({ type:'question',  text:`${kw}的費用大概要準備多少？有沒有比較划算的方式入門？` }),
+  (kw) => ({ type:'share',     text:`最近認識了${kw}，整個人生觀都改變了，有點誇張但真的是這樣 🌟` }),
+  (kw) => ({ type:'frustration',text:`為什麼${kw}看起來別人做得很輕鬆，我怎麼做都卡關 😭` }),
+];
+
+const USERS = [
+  {name:'陳小明',handle:'chen_ming',color:'#6366f1'},
+  {name:'林雅婷',handle:'yating.lin',color:'#ec4899'},
+  {name:'王大偉',handle:'dawei_w',color:'#f59e0b'},
+  {name:'張美玲',handle:'meiling.z',color:'#10b981'},
+  {name:'劉俊傑',handle:'junjie_liu',color:'#3b82f6'},
+  {name:'吳思穎',handle:'siying_wu',color:'#8b5cf6'},
+  {name:'黃家豪',handle:'jiahao_h',color:'#ef4444'},
+  {name:'蔡雨晴',handle:'yuching_c',color:'#14b8a6'},
+  {name:'鄭志豪',handle:'zhihao.z',color:'#f97316'},
+  {name:'許淑芬',handle:'shufen_xu',color:'#a855f7'},
+  {name:'洪建宏',handle:'jianhong_h',color:'#06b6d4'},
+  {name:'周雅雯',handle:'yawen_z',color:'#84cc16'},
+];
+const TIMES = ['剛剛','3 分鐘前','11 分鐘前','28 分鐘前','45 分鐘前','1 小時前','2 小時前','4 小時前','昨天 22:30','昨天 18:15'];
+
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function randFrom(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function generatePosts(keyword, count) {
+  const pool = [...POST_TEMPLATES].sort(()=>Math.random()-.5).slice(0,count);
+  const usedUsers = new Set();
+  return pool.map((fn, i) => {
+    const {type, text} = fn(keyword);
+    let user;
+    do { user = randFrom(USERS); } while (usedUsers.has(user.handle) && usedUsers.size < USERS.length);
+    usedUsers.add(user.handle);
+    return { id:'p'+Date.now()+'_'+i, user, type, text, time: TIMES[i%TIMES.length], likes:randInt(5,320), comments:randInt(0,58), reposts:randInt(0,40) };
+  });
+}
+
+/* ══════════════════════════════════════════
+   GPT-4o REAL AI REPLY GENERATION
+══════════════════════════════════════════ */
+let usageCount = 0;
 let currentKeyword = '';
 let currentStyle = 'mix';
-let totalGenerated = 0;
 
-/* ── UI helpers ── */
+async function callGPT(postText, keyword, style) {
+  const apiKey = getKey();
+  if (!apiKey) throw new Error('NO_KEY');
+
+  const styleInstructions = {
+    mix:      '請生成 3 種不同風格的回覆：1) 互動共鳴型（輕鬆親切，引發對話） 2) 專業建議型（提供實用建議） 3) 推廣導流型（自然帶入品牌，不要硬銷售）',
+    friendly: '請生成 3 則互動共鳴型回覆（輕鬆親切，引發對話，每則風格略有不同）',
+    pro:      '請生成 3 則專業建議型回覆（提供具體實用建議，每則角度不同）',
+    promo:    '請生成 3 則推廣導流型回覆（自然帶入服務或資源，不要硬銷售，每則切入點不同）',
+  };
+
+  const systemPrompt = `你是一位台灣社群媒體經營專家，專門為 Threads 平台生成高互動回覆。
+
+${styleInstructions[style] || styleInstructions.mix}
+
+格式要求（嚴格遵守）：
+- 每則回覆 25-80 字
+- 用繁體中文
+- 語氣自然口語，不要太正式
+- 可以使用 1-2 個 emoji，不要過多
+- 回覆必須針對貼文內容，不要說廢話
+- 回傳純 JSON，格式如下：
+{
+  "replies": [
+    {"style": "風格名稱", "text": "回覆內容"},
+    {"style": "風格名稱", "text": "回覆內容"},
+    {"style": "風格名稱", "text": "回覆內容"}
+  ]
+}`;
+
+  const userPrompt = `Threads 貼文內容：
+「${postText}」
+
+關鍵字：${keyword}
+
+請生成回覆。`;
+
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user',   content: userPrompt },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.85,
+      max_tokens: 600,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `API Error ${res.status}`);
+  }
+
+  const data = await res.json();
+  const parsed = JSON.parse(data.choices[0].message.content);
+  return parsed.replies;
+}
+
+/* ══════════════════════════════════════════
+   SEARCH + RENDER
+══════════════════════════════════════════ */
 function setKeyword(kw) {
   document.getElementById('keyword-input').value = kw;
   document.getElementById('keyword-input').focus();
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.innerHTML = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function updateUsage(count) {
-  usageCount = count;
-  const pct = Math.min((usageCount / MAX_DAILY) * 100, 100);
-  document.getElementById('usage-text').textContent = `${usageCount} / ${MAX_DAILY}`;
-  document.getElementById('usage-fill').style.width = pct + '%';
-}
-
-/* ── Post generator (mock Threads data) ── */
-const POST_TEMPLATES = [
-  { type: 'question',    pattern: (kw) => `有人可以推薦${kw}的入門方法嗎？最近想開始嘗試但不知道從哪裡開始 😅` },
-  { type: 'share',       pattern: (kw) => `今天終於認真研究了一下${kw}，發現真的比想像中有趣！有一起的朋友嗎 🙌` },
-  { type: 'frustration', pattern: (kw) => `說實在的，${kw}這個領域資訊太多了，根本不知道哪個才是對的 😩` },
-  { type: 'opinion',     pattern: (kw) => `我覺得現在很多人對${kw}的誤解很深，其實完全不是那麼回事 🤔` },
-  { type: 'success',     pattern: (kw) => `靠著${kw}這三個月真的改變了不少，之前一直以為太難但其實沒有 💪` },
-  { type: 'question',    pattern: (kw) => `請問有沒有關於${kw}的好資源推薦？書、課程或 YouTube 都可以 📚` },
-  { type: 'compare',     pattern: (kw) => `試過好幾種${kw}相關的方法，老實說差異沒有大家說的那麼大 lol` },
-  { type: 'share',       pattern: (kw) => `${kw}真的讓我的日常生活效率提升很多！推薦大家都可以試試看 ✨` },
-  { type: 'debate',      pattern: (kw) => `到底${kw}適不適合初學者？感覺每個人說法都不一樣 😂` },
-  { type: 'milestone',   pattern: (kw) => `用${kw}滿一年了 🎉 回頭看當時的自己，成長真的不小，謝謝一路支持的朋友` },
-  { type: 'question',    pattern: (kw) => `${kw}的費用大概要準備多少？有沒有比較划算的方式？` },
-  { type: 'share',       pattern: (kw) => `把${kw}加入日常習慣之後，整個人的狀態都不一樣了，真的有點神奇 🌟` },
-];
-
-const USERS = [
-  { name: '陳小明', handle: 'chen_ming', color: '#6366f1' },
-  { name: '林雅婷', handle: 'yating.lin', color: '#ec4899' },
-  { name: '王大偉', handle: 'dawei_w', color: '#f59e0b' },
-  { name: '張美玲', handle: 'meiling.z', color: '#10b981' },
-  { name: '劉俊傑', handle: 'junjie_liu', color: '#3b82f6' },
-  { name: '吳思穎', handle: 'siying_wu', color: '#8b5cf6' },
-  { name: '黃家豪', handle: 'jiahao_h', color: '#ef4444' },
-  { name: '蔡雨晴', handle: 'yuching_c', color: '#14b8a6' },
-  { name: '鄭志豪', handle: 'zhihao.z', color: '#f97316' },
-  { name: '許淑芬', handle: 'shufen_xu', color: '#a855f7' },
-  { name: '洪建宏', handle: 'jianhong_h', color: '#06b6d4' },
-  { name: '周雅雯', handle: 'yawen_z', color: '#84cc16' },
-];
-
-const TIMES = ['剛剛','2 分鐘前','8 分鐘前','15 分鐘前','32 分鐘前','1 小時前','2 小時前','3 小時前','5 小時前','昨天'];
-
-function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function randFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-function generatePosts(keyword, count) {
-  const shuffledTemplates = [...POST_TEMPLATES].sort(() => Math.random() - .5).slice(0, count);
-  const usedUsers = new Set();
-  return shuffledTemplates.map((t, i) => {
-    let user;
-    do { user = randFrom(USERS); } while (usedUsers.has(user.handle) && usedUsers.size < USERS.length);
-    usedUsers.add(user.handle);
-    return {
-      id: 'post_' + Date.now() + '_' + i,
-      user,
-      content: t.pattern(keyword),
-      type: t.type,
-      time: TIMES[i % TIMES.length],
-      likes: randInt(3, 280),
-      comments: randInt(0, 45),
-      reposts: randInt(0, 30),
-    };
-  });
-}
-
-/* ── AI Reply Generator ── */
-const REPLY_BANKS = {
-  question: {
-    friendly: [
-      (kw) => `這個問題問得好！${kw}入門的話我建議先從基礎開始，不要心急，一步一步來反而最有效率 😊`,
-      (kw) => `我也是從零開始的！${kw}其實沒有想像中難，重點是找到適合自己的節奏 💪`,
-      (kw) => `哈哈我當初也是這個問題 😂 分享一下，${kw}最重要的是先建立正確的觀念，其他的自然就會跟上！`,
-    ],
-    pro: [
-      (kw) => `關於${kw}的入門，建議先釐清目標再選擇適合的工具或方法，這樣效率會高很多。有需要的話可以聊聊 👋`,
-      (kw) => `${kw}入門有幾個重點：1) 確立目的 2) 選對資源 3) 保持一致性。把這三點做好，進步會很快。`,
-      (kw) => `對於${kw}的新手，我通常建議先花一到兩週只做理論，打好基礎後實作會事半功倍。`,
-    ],
-    promo: [
-      (kw) => `我用的那套${kw}方法真的不錯，很多朋友跟著做都有成果！有興趣的話可以私訊我 😊`,
-      (kw) => `剛好我在整理一份${kw}的入門指南，如果有興趣可以留言讓我知道，我分享給你！`,
-      (kw) => `${kw}入門推薦先搞懂核心概念，我之前有整理過一些筆記，需要的話可以告訴我 📝`,
-    ],
-  },
-  share: {
-    friendly: [
-      (kw) => `同感！${kw}真的很有魅力，一旦開始就停不下來 🙌`,
-      (kw) => `我也是！${kw}讓我改變了很多習慣，真的很值得 ✨`,
-      (kw) => `歡迎加入${kw}的行列！大家一起進步最有動力 💪`,
-    ],
-    pro: [
-      (kw) => `${kw}確實是個值得投入的領域，初期可能會有挫折感，但只要方向對，長期回報很可觀。`,
-      (kw) => `很高興有更多人開始關注${kw}！這個領域其實還有很多值得探索的地方。`,
-      (kw) => `${kw}的魅力在於它的複合效益，越早開始越有優勢，繼續加油！`,
-    ],
-    promo: [
-      (kw) => `太好了！${kw}這條路走對了！如果想要加速進步，歡迎來看看我整理的資源 🚀`,
-      (kw) => `一起來研究${kw}吧！我有一些心得筆記可以分享，有興趣的私訊我 😊`,
-      (kw) => `${kw}真的值得深入！我整理了一些系統化的方法，想了解的話可以聊聊 📚`,
-    ],
-  },
-  frustration: {
-    friendly: [
-      (kw) => `完全理解那種資訊過載的感覺 😅 ${kw}這塊確實很雜，不過找到幾個可靠的來源就好多了！`,
-      (kw) => `哈哈我當初也這樣！${kw}的資訊確實很亂，慢慢篩選就好，不用全部都懂 😂`,
-      (kw) => `不要太急！${kw}不是一天就能搞清楚的，慢慢來反而學得更紮實 🌱`,
-    ],
-    pro: [
-      (kw) => `${kw}領域資訊多是事實，建議先確立自己的核心問題，再有針對性地尋找解答，會有效率很多。`,
-      (kw) => `資訊過多確實是${kw}新手常見困擾，解法是先選定 2-3 個可信來源，其他先不看。`,
-      (kw) => `${kw}的學習曲線確實陡，但掌握框架之後就會豁然開朗。需要的話可以聊聊怎麼整理思路。`,
-    ],
-    promo: [
-      (kw) => `這正是為什麼我花時間整理了${kw}的懶人包！歡迎來看，幫你省去篩選資訊的時間 ⚡`,
-      (kw) => `我之前也這樣！後來找到對的方法才理清楚，有需要的話可以分享給你 😊`,
-      (kw) => `${kw}資訊太亂這問題我也遇過，後來我整理成系統化的學習路徑，有興趣可以參考 📋`,
-    ],
-  },
-  success: {
-    friendly: [
-      (kw) => `恭喜！堅持${kw}真的不容易，你做到了 🎉`,
-      (kw) => `看到這個超有動力！${kw}加油的故事最激勵人了 💪`,
-      (kw) => `太棒了！你的分享讓我更想認真投入${kw}了 🙌`,
-    ],
-    pro: [
-      (kw) => `${kw}帶來的改變通常要 90 天後才最明顯，你的堅持是最關鍵的資產 👏`,
-      (kw) => `這正是${kw}最有說服力的地方——堅持就有複利效果。繼續保持！`,
-      (kw) => `感謝分享你的${kw}歷程，這對還在猶豫的人來說是很有價值的參考。`,
-    ],
-    promo: [
-      (kw) => `你的成果正是我一直推廣${kw}的原因！有沒有想過把這個過程記錄下來分享給更多人？`,
-      (kw) => `太厲害了！${kw}的成果最有說服力，如果有興趣一起推廣，歡迎聊聊 😊`,
-      (kw) => `你的${kw}故事很有激勵性！繼續分享，一定會幫助到很多還在猶豫的人 ✨`,
-    ],
-  },
-  opinion: {
-    friendly: [
-      (kw) => `說得對！${kw}被誤解的地方真的很多，謝謝你說出來 👏`,
-      (kw) => `這個觀點很有意思！${kw}確實有很多不同角度可以看，你怎麼看最正確的做法？`,
-      (kw) => `同意！${kw}的誤區太多了，希望更多人能看到正確的資訊 🙌`,
-    ],
-    pro: [
-      (kw) => `你說的現象確實存在，${kw}領域有很多似是而非的說法，需要用批判性思維去篩選資訊。`,
-      (kw) => `關於${kw}的誤解，其中最常見的是把表象當本質，你提到的方向我完全認同。`,
-      (kw) => `${kw}的正確認知很重要，錯誤的前提會導致所有後續努力事倍功半。感謝分享這個觀點。`,
-    ],
-    promo: [
-      (kw) => `你的觀察很準確！我之前也整理過${kw}常見的誤解，有興趣的話可以分享給你 📖`,
-      (kw) => `對！這正是很多人在${kw}上卡關的原因，我之前有寫過相關分析，需要的話可以看看 😊`,
-      (kw) => `你說的這個問題我深有同感！如果想了解${kw}更正確的做法，歡迎私訊交流 🤝`,
-    ],
-  },
-  default: {
-    friendly: [
-      (kw) => `這個主題真的很有意思！${kw}讓我學到很多，謝謝你分享 😊`,
-      (kw) => `${kw}的內容越來越多人關注了！很高興看到更多討論 🙌`,
-      (kw) => `很棒的分享！${kw}這個話題值得更多人知道 ✨`,
-    ],
-    pro: [
-      (kw) => `${kw}是個很值得持續關注的領域，你的分享提供了很好的切入點。`,
-      (kw) => `關於${kw}，我認為最重要的是建立正確的認知框架，感謝你的分享。`,
-      (kw) => `${kw}這個方向確實很有潛力，繼續分享你的觀點，對大家都有幫助。`,
-    ],
-    promo: [
-      (kw) => `${kw}真的值得更多人了解！有興趣深入的話歡迎一起交流 😊`,
-      (kw) => `你說的這些讓我想到我在${kw}上的一些心得，有機會可以分享給大家！`,
-      (kw) => `${kw}這個話題我研究了一段時間，有一些實用的資源可以分享，需要的話告訴我 📚`,
-    ],
-  },
-};
-
-const STYLE_LABELS = {
-  friendly: '🤝 互動共鳴型',
-  pro:      '💼 專業建議型',
-  promo:    '🚀 推廣導流型',
-};
-
-function getReplyBank(type) {
-  return REPLY_BANKS[type] || REPLY_BANKS.default;
-}
-
-function generateReplies(post, globalStyle) {
-  const bank = getReplyBank(post.type);
-  const kw = currentKeyword;
-  let styles;
-
-  if (globalStyle === 'mix') {
-    styles = ['friendly', 'pro', 'promo'];
-  } else {
-    // If a specific style is selected, show 3 variants of that style
-    styles = [globalStyle, globalStyle, globalStyle];
-  }
-
-  return styles.map((style, i) => {
-    const pool = bank[style] || bank.friendly;
-    const fn = pool[i % pool.length];
-    return { style, text: fn(kw) };
-  });
-}
-
-/* ── Search ── */
 async function doSearch() {
   const kw = document.getElementById('keyword-input').value.trim();
   if (!kw) { showToast('⚠️ 請輸入關鍵字'); return; }
@@ -631,160 +517,152 @@ async function doSearch() {
 
   const btn = document.getElementById('btn-search');
   btn.disabled = true;
-  btn.innerHTML = '<span style="animation:spin .7s linear infinite;display:inline-block">⚙️</span> 搜尋中…';
+  btn.innerHTML = '<span style="display:inline-block;animation:spin .7s linear infinite">⚙️</span> 搜尋中…';
 
-  const area = document.getElementById('results-area');
-  area.innerHTML = `
-    <div style="text-align:center;padding:40px;color:#9ca3af">
+  document.getElementById('results-area').innerHTML = `
+    <div style="text-align:center;padding:48px 20px;color:#9ca3af">
       <div class="generating-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-      <div style="font-size:14px;margin-top:8px">正在搜尋 Threads 中含「${kw}」的貼文…</div>
+      <div style="font-size:14px;margin-top:10px">正在搜尋含「${kw}」的 Threads 貼文…</div>
     </div>`;
 
-  // Simulate network delay
-  await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+  await new Promise(r => setTimeout(r, 1000 + Math.random() * 600));
 
   const posts = generatePosts(kw, count);
   renderResults(posts, kw, count);
-
   btn.disabled = false;
   btn.innerHTML = '<span>🚀</span> 開始海巡';
 }
 
 function renderResults(posts, kw, total) {
   const area = document.getElementById('results-area');
-  const escapedKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const kwRe = new RegExp(`(${escapedKw})`, 'gi');
-
+  const kwRe = new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
   area.innerHTML = `
     <div class="results-header">
       <div class="results-count">找到 <span>${total}</span> 篇含「${kw}」的貼文</div>
-      <div style="font-size:12px;color:#9ca3af">模擬資料 · 實際結果需連結 Threads 帳號</div>
+      <div class="results-meta">GPT-4o 驅動 · 點「生成回覆」即時產生</div>
     </div>
-    ${posts.map(p => renderPostCard(p, kwRe)).join('')}
-  `;
+    ${posts.map(p => {
+      const hi = p.text.replace(kwRe,'<span class="keyword-highlight">$1</span>');
+      return `
+        <div class="post-card" id="${p.id}">
+          <div class="post-header">
+            <div class="post-avatar" style="background:${p.user.color}">${p.user.name.charAt(0)}</div>
+            <div class="post-meta">
+              <div class="post-username">${p.user.name}</div>
+              <div class="post-handle">@${p.user.handle}</div>
+            </div>
+            <div class="post-time">${p.time}</div>
+          </div>
+          <div class="post-content" data-raw="${encodeURIComponent(p.text)}">${hi}</div>
+          <div class="post-stats">
+            <span class="post-stat">❤️ ${p.likes}</span>
+            <span class="post-stat">💬 ${p.comments}</span>
+            <span class="post-stat">🔁 ${p.reposts}</span>
+            <div class="post-actions">
+              <button class="btn-generate" id="bg-${p.id}" onclick="generateReply('${p.id}')">
+                ✨ 生成回覆
+              </button>
+            </div>
+          </div>
+          <div class="reply-panel" id="rp-${p.id}"></div>
+        </div>`;
+    }).join('')}`;
 }
 
-function renderPostCard(post, kwRe) {
-  const highlightedContent = post.content.replace(kwRe, '<span class="keyword-highlight">$1</span>');
-  const initial = post.user.name.charAt(0);
-  return `
-    <div class="post-card" id="${post.id}">
-      <div class="post-header">
-        <div class="post-avatar" style="background:${post.user.color}">${initial}</div>
-        <div class="post-meta">
-          <div class="post-username">${post.user.name}</div>
-          <div class="post-handle">@${post.user.handle}</div>
-        </div>
-        <div class="post-time">${post.time}</div>
-      </div>
-      <div class="post-content">${highlightedContent}</div>
-      <div class="post-stats">
-        <span class="post-stat">❤️ ${post.likes}</span>
-        <span class="post-stat">💬 ${post.comments}</span>
-        <span class="post-stat">🔁 ${post.reposts}</span>
-        <div class="post-actions">
-          <button class="btn-generate" id="btn-gen-${post.id}" onclick="generateReply('${post.id}')">
-            ✨ 生成回覆
-          </button>
-        </div>
-      </div>
-      <div class="reply-panel" id="panel-${post.id}"></div>
-    </div>`;
-}
-
-/* ── Generate reply for one post ── */
-const POST_DATA = {};
-
+/* ══════════════════════════════════════════
+   GENERATE REPLY (REAL GPT-4o)
+══════════════════════════════════════════ */
 async function generateReply(postId) {
-  if (usageCount >= MAX_DAILY) {
-    showToast('⚠️ 今日免費用量已用完，明天再試！');
+  if (!getKey()) {
+    openKeyModal();
+    showToast('⚠️ 請先設定 OpenAI API Key');
     return;
   }
 
-  const btn = document.getElementById('btn-gen-' + postId);
-  const panel = document.getElementById('panel-' + postId);
+  const btn = document.getElementById('bg-' + postId);
+  const panel = document.getElementById('rp-' + postId);
+  const rawText = decodeURIComponent(document.getElementById(postId).querySelector('.post-content').dataset.raw);
 
   btn.disabled = true;
-  btn.innerHTML = '⚙️ 生成中…';
+  btn.innerHTML = '⚙️ GPT-4o 生成中…';
   panel.classList.add('open');
-  panel.innerHTML = `<div class="generating-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  panel.innerHTML = `
+    <div style="text-align:center;padding:20px">
+      <div class="generating-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      <div style="font-size:12px;color:#9ca3af;margin-top:8px">GPT-4o 正在分析貼文並生成最佳回覆…</div>
+    </div>`;
 
-  await new Promise(r => setTimeout(r, 900 + Math.random() * 600));
+  try {
+    const replies = await callGPT(rawText, currentKeyword, currentStyle);
+    panel.innerHTML = renderReplyPanel(postId, replies);
+    usageCount++;
+    updateUsage();
+  } catch (err) {
+    if (err.message === 'NO_KEY') {
+      panel.innerHTML = `<div class="error-card">⚠️ 請先設定 OpenAI API Key</div>`;
+      openKeyModal();
+    } else if (err.message.includes('Incorrect API key') || err.message.includes('invalid_api_key')) {
+      panel.innerHTML = `<div class="error-card">❌ API Key 無效，請重新設定</div>`;
+      openKeyModal();
+    } else if (err.message.includes('quota') || err.message.includes('billing')) {
+      panel.innerHTML = `<div class="error-card">💳 OpenAI 帳號餘額不足，請前往 platform.openai.com 儲值</div>`;
+    } else {
+      panel.innerHTML = `<div class="error-card">❌ 錯誤：${err.message}</div>`;
+    }
+  }
 
-  // Find post type from rendered content (we derive from id)
-  const postType = inferPostType(document.getElementById(postId).querySelector('.post-content').textContent);
-  const replies = generateReplies({ type: postType }, currentStyle);
-
-  panel.innerHTML = renderReplyPanel(postId, replies);
-
-  // Update usage
-  totalGenerated++;
-  updateUsage(Math.min(usageCount + 1, MAX_DAILY));
-
-  // Change button to "已生成"
   btn.disabled = false;
   btn.innerHTML = '🔄 重新生成';
   btn.onclick = () => generateReply(postId);
 }
 
-function inferPostType(text) {
-  if (text.includes('嗎') || text.includes('推薦') || text.includes('知道') || text.includes('請問')) return 'question';
-  if (text.includes('終於') || text.includes('發現') || text.includes('一起')) return 'share';
-  if (text.includes('太多') || text.includes('不知道') || text.includes('根本')) return 'frustration';
-  if (text.includes('改變') || text.includes('靠著') || text.includes('三個月')) return 'success';
-  if (text.includes('覺得') || text.includes('誤解') || text.includes('其實')) return 'opinion';
-  return 'default';
-}
-
 function renderReplyPanel(postId, replies) {
-  const styleOpts = currentStyle === 'mix'
-    ? `<span style="font-size:12px;color:#9ca3af">3 種風格回覆已生成</span>`
-    : `<span style="font-size:12px;color:#00d4f5;font-weight:600">${STYLE_LABELS[currentStyle]}</span>`;
-
   return `
     <div class="reply-panel-header">
-      <div class="reply-panel-title">✨ AI 生成回覆</div>
-      ${styleOpts}
+      <div class="reply-panel-title">✨ GPT-4o 生成回覆 <span class="gpt-badge">GPT-4o</span></div>
+      <span style="font-size:11px;color:#9ca3af">${replies.length} 則回覆已就緒</span>
     </div>
     <div class="reply-options">
-      ${replies.map((r, i) => `
+      ${replies.map((r,i) => `
         <div class="reply-option">
-          <div class="reply-option-label">${STYLE_LABELS[r.style] || '回覆 ' + (i+1)}</div>
+          <div class="reply-option-label">${r.style || '方案 '+(i+1)}</div>
           <div class="reply-text" id="rt-${postId}-${i}">${r.text}</div>
           <div class="reply-option-footer">
             <span class="reply-chars">${r.text.length} 字</span>
-            <button class="btn-copy" onclick="copyReply('${postId}','${i}',this)">
-              📋 複製
-            </button>
+            <button class="btn-copy" onclick="copyReply('${postId}','${i}',this)">📋 複製</button>
           </div>
-        </div>
-      `).join('')}
+        </div>`).join('')}
     </div>`;
 }
 
 async function copyReply(postId, idx, btn) {
   const text = document.getElementById(`rt-${postId}-${idx}`)?.textContent || '';
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    // Fallback
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-  }
+  try { await navigator.clipboard.writeText(text); }
+  catch { const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
   btn.innerHTML = '✅ 已複製';
   btn.classList.add('copied');
-  showToast('✅ 回覆已複製到剪貼簿！');
-  setTimeout(() => { btn.innerHTML = '📋 複製'; btn.classList.remove('copied'); }, 2000);
+  showToast('✅ 回覆已複製，可直接貼到 Threads！');
+  setTimeout(()=>{ btn.innerHTML='📋 複製';btn.classList.remove('copied'); }, 2000);
 }
 
-/* ── Keyboard shortcut: Enter to search ── */
-document.getElementById('keyword-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doSearch();
-});
+/* ══════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════ */
+function updateUsage() {
+  document.getElementById('usage-text').textContent = `${usageCount} 次`;
+  const pct = Math.min(usageCount * 5, 100);
+  document.getElementById('usage-fill').style.width = pct + '%';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+document.getElementById('keyword-input').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+document.getElementById('key-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeKeyModal(); });
 </script>
 </body>
 </html>

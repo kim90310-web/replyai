@@ -150,6 +150,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f7fa; col
 .empty h3 { font-size:16px;font-weight:700;color:#374151;margin-bottom:8px; }
 .err-card { background:#fff5f5;border:1.5px solid #fecaca;border-radius:10px;padding:14px 18px;font-size:13px;color:#dc2626;margin-bottom:12px; }
 .no-result { background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:20px;font-size:13px;color:#92400e;text-align:center; }
+.hidden { display:none!important; }
 
 /* ── Toast ── */
 #toast { position:fixed;bottom:28px;right:28px;z-index:9999;background:#111;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none; }
@@ -269,6 +270,12 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f7fa; col
           <option value="friendly">互動共鳴型</option>
           <option value="pro">專業建議型</option>
           <option value="promo">推廣導流型</option>
+        </select>
+        <select class="sel" id="time-range">
+          <option value="qdr:d">24 小時內</option>
+          <option value="qdr:w" selected>過去一週</option>
+          <option value="qdr:m">過去一個月</option>
+          <option value="">不限時間</option>
         </select>
         <select class="sel" id="result-count">
           <option value="5">5 篇</option>
@@ -412,9 +419,17 @@ document.getElementById('gpt-usage-txt').textContent = `${gptUsed} 次`;
 let currentKw = '';
 let currentStyle = 'mix';
 
-async function searchThreads(keyword, num) {
+async function searchThreads(keyword, num, tbs) {
   const key = getSerper();
   if (!key) throw new Error('NO_SERPER');
+
+  const body = {
+    q: `site:threads.net inurl:post ${keyword}`,
+    num: Math.min(num, 10),
+    gl: 'tw',
+    hl: 'zh-tw',
+  };
+  if (tbs) body.tbs = tbs;
 
   const res = await fetch('https://google.serper.dev/search', {
     method: 'POST',
@@ -422,12 +437,7 @@ async function searchThreads(keyword, num) {
       'X-API-KEY': key,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      q: `site:threads.net ${keyword}`,
-      num: Math.min(num, 10),   // Serper max 10 per request
-      gl: 'tw',
-      hl: 'zh-tw',
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
@@ -443,7 +453,7 @@ async function searchThreads(keyword, num) {
 function parseSerperResults(items, keyword) {
   const COLORS = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#14b8a6','#f97316','#a855f7'];
   return items
-    .filter(r => r.link && r.link.includes('threads.net'))
+    .filter(r => r.link && r.link.includes('threads.net') && r.link.includes('/post/'))
     .map((r, i) => {
       // Extract @handle from URL: threads.net/@handle/post/...
       const match = r.link.match(/threads\.net\/@([^/?#]+)/);
@@ -478,6 +488,8 @@ async function doSearch() {
   currentKw = kw;
   currentStyle = document.getElementById('reply-style').value;
   const num = parseInt(document.getElementById('result-count').value);
+  const tbs = document.getElementById('time-range').value;
+  const timeLabel = document.getElementById('time-range').selectedOptions[0].text;
 
   const btn = document.getElementById('btn-search');
   btn.disabled = true;
@@ -487,11 +499,11 @@ async function doSearch() {
     <div style="text-align:center;padding:48px 20px">
       <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
       <div style="font-size:14px;color:#9ca3af;margin-top:10px">正在從 Threads 搜尋「${kw}」相關貼文…</div>
-      <div style="font-size:12px;color:#d1d5db;margin-top:5px">透過 Google Serper 搜尋 site:threads.net</div>
+      <div style="font-size:12px;color:#d1d5db;margin-top:5px">篩選條件：${timeLabel} · 僅限單篇貼文（inurl:post）</div>
     </div>`;
 
   try {
-    const raw = await searchThreads(kw, num);
+    const raw = await searchThreads(kw, num, tbs);
     incSerper();
 
     if (!raw.length) {
@@ -524,7 +536,7 @@ function renderResults(posts, kw) {
       <div class="results-count">找到 <span>${posts.length}</span> 篇真實 Threads 貼文</div>
       <div class="results-source">
         <span class="source-dot"></span>
-        Google Serper 即時搜尋 · site:threads.net ${kw}
+        即時搜尋 · inurl:post · ${document.getElementById('time-range').selectedOptions[0].text}
       </div>
     </div>
     ${posts.map(p => {

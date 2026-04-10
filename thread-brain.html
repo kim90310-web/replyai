@@ -405,50 +405,86 @@ function clearWiki() {
 }
 
 /* ══════════════════════════════
-   OPENAI KEY MANAGEMENT
+   GEMINI API KEY MANAGEMENT
 ══════════════════════════════ */
-const OPENAI_KEY_NAME = 'rai_openai_key';
-const getOpenAI = () => localStorage.getItem(OPENAI_KEY_NAME) || '';
+const GEMINI_KEY_NAME = 'rai_gemini_key';
+const getGeminiKey = () => localStorage.getItem(GEMINI_KEY_NAME) || '';
 
-function ensureOpenAIKey() {
-  let key = getOpenAI();
+function ensureGeminiKey() {
+  let key = getGeminiKey();
   if (key) return key;
-  key = prompt('請輸入你的 OpenAI API Key（sk-...）：\n\n這只會存在你的瀏覽器 localStorage，不會上傳到任何伺服器。');
-  if (!key || !key.startsWith('sk-')) {
-    showToast('⚠️ 需要有效的 OpenAI Key 才能使用 AI 功能');
+  key = prompt('請輸入你的 Google Gemini API Key（AIza...）：\n\n免費取得：https://aistudio.google.com/apikey\n\nKey 只會存在你的瀏覽器 localStorage，不會上傳到任何伺服器。');
+  if (!key || key.length < 20) {
+    showToast('⚠️ 需要有效的 Gemini API Key 才能使用 AI 功能');
     return null;
   }
-  localStorage.setItem(OPENAI_KEY_NAME, key);
-  showToast('✅ OpenAI Key 已儲存！');
+  localStorage.setItem(GEMINI_KEY_NAME, key);
+  showToast('✅ Gemini API Key 已儲存！');
   return key;
 }
 
+/**
+ * 統一呼叫 Gemini 1.5 Flash API
+ * @param {string} systemPrompt - 系統指令
+ * @param {string} userPrompt   - 使用者輸入
+ * @returns {string} AI 回覆的文字
+ */
+async function callGemini(systemPrompt, userPrompt) {
+  const key = ensureGeminiKey();
+  if (!key) throw new Error('NO_KEY');
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      contents: [{
+        role: 'user',
+        parts: [{ text: userPrompt }]
+      }],
+      generationConfig: {
+        temperature: 0.6,
+        maxOutputTokens: 2048,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.error?.message || `Gemini API error ${res.status}`;
+    // 如果是 key 無效，自動清除
+    if (res.status === 400 || res.status === 403) {
+      localStorage.removeItem(GEMINI_KEY_NAME);
+    }
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  console.log('[Gemini] 回傳資料：', data);
+
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Gemini 回傳為空，請重試');
+  return text;
+}
+
 /* ══════════════════════════════
-   BRAINWASH — Feed raw input to AI
+   BRAINWASH — Feed raw input to Gemini
 ══════════════════════════════ */
 async function doBrainwash() {
   const raw = document.getElementById('raw-input').value.trim();
   if (!raw) { showToast('⚠️ 請先輸入一些內容'); return; }
 
-  const oKey = ensureOpenAIKey();
-  if (!oKey) return;
-
   const btn = document.getElementById('btn-brainwash');
   btn.disabled = true;
-  btn.innerHTML = '⚙️ AI 大腦消化中…';
+  btn.innerHTML = '⚙️ Gemini 大腦消化中…';
 
   const existingWiki = getWikiMd();
 
-  try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${oKey}` },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `你是一位知識管理專家。用戶會丟給你一堆雜亂的筆記、想法、文章摘錄或連結。
+  const systemPrompt = `你是一位知識管理專家。用戶會丟給你一堆雜亂的筆記、想法、文章摘錄或連結。
 
 你的任務：
 1. 閱讀用戶的「現有知識 Wiki」和「新的原始輸入」
@@ -458,37 +494,18 @@ async function doBrainwash() {
 5. 保留原有的所有內容，只新增/更新
 
 輸出格式：純 Markdown，使用 ## 作為主題標題，* 作為條目。
-不要輸出任何解釋，直接輸出整合後的完整 Wiki。`
-          },
-          {
-            role: 'user',
-            content: `【現有知識 Wiki】\n${existingWiki}\n\n【新的原始輸入】\n${raw}`
-          }
-        ],
-        temperature: 0.5,
-        max_tokens: 2000,
-      }),
-    });
+不要輸出任何解釋或前後綴文字，直接輸出整合後的完整 Wiki。`;
 
-    if (!res.ok) {
-      const e = await res.json().catch(() => ({}));
-      throw new Error(e?.error?.message || `OpenAI error ${res.status}`);
-    }
+  const userPrompt = `【現有知識 Wiki】\n${existingWiki}\n\n【新的原始輸入】\n${raw}`;
 
-    const data = await res.json();
-    const newWiki = data.choices[0].message.content;
+  try {
+    const newWiki = await callGemini(systemPrompt, userPrompt);
     saveWiki(newWiki);
     document.getElementById('raw-input').value = '';
     document.getElementById('char-count').textContent = '0 字';
     showToast('🧠 大腦已更新！新知識已整合進 Wiki');
-
   } catch(e) {
-    let msg = e.message;
-    if (msg.includes('invalid_api_key') || msg.includes('Incorrect')) {
-      msg = 'OpenAI Key 無效，請重新設定';
-      localStorage.removeItem(OPENAI_KEY_NAME);
-    }
-    showToast('❌ ' + msg);
+    if (e.message !== 'NO_KEY') showToast('❌ ' + e.message);
   }
 
   btn.disabled = false;
@@ -512,25 +529,13 @@ async function doDraft() {
   const topic = document.getElementById('draft-topic').value.trim();
   if (!topic) { showToast('⚠️ 請輸入你想聊的主題'); return; }
 
-  const oKey = ensureOpenAIKey();
-  if (!oKey) return;
-
   const btn = document.getElementById('btn-draft-go');
   btn.disabled = true;
-  btn.innerHTML = '⚙️ 生成中…';
+  btn.innerHTML = '⚙️ Gemini 生成中…';
 
   const wiki = getWikiMd();
 
-  try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${oKey}` },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `你是一位台灣頂尖的社群內容創作者，專門為 Threads 撰寫高互動貼文。
+  const systemPrompt = `你是一位台灣頂尖的社群內容創作者，專門為 Threads 撰寫高互動貼文。
 
 你會收到用戶的「個人知識 Wiki」和他想聊的主題。
 請根據 Wiki 中的知識和觀點，生成一篇有靈魂、有個人觀點的 Threads 貼文。
@@ -542,36 +547,17 @@ async function doDraft() {
 - 融入用戶 Wiki 中的真實觀點，不說空話
 - 結尾帶一個互動問句
 - 最多 3 個 emoji
-- 直接輸出貼文內容，不要加任何標題或解釋`
-          },
-          {
-            role: 'user',
-            content: `【我的知識 Wiki】\n${wiki}\n\n【我想聊的主題】\n${topic}`
-          }
-        ],
-        temperature: 0.85,
-        max_tokens: 600,
-      }),
-    });
+- 直接輸出貼文內容，不要加任何標題或解釋`;
 
-    if (!res.ok) {
-      const e = await res.json().catch(() => ({}));
-      throw new Error(e?.error?.message || `OpenAI error ${res.status}`);
-    }
+  const userPrompt = `【我的知識 Wiki】\n${wiki}\n\n【我想聊的主題】\n${topic}`;
 
-    const data = await res.json();
-    const post = data.choices[0].message.content;
+  try {
+    const post = await callGemini(systemPrompt, userPrompt);
     document.getElementById('draft-output').textContent = post;
     document.getElementById('draft-chars').textContent = `${post.length} 字`;
     document.getElementById('draft-result').classList.add('show');
-
   } catch(e) {
-    let msg = e.message;
-    if (msg.includes('invalid_api_key') || msg.includes('Incorrect')) {
-      msg = 'OpenAI Key 無效';
-      localStorage.removeItem(OPENAI_KEY_NAME);
-    }
-    showToast('❌ ' + msg);
+    if (e.message !== 'NO_KEY') showToast('❌ ' + e.message);
   }
 
   btn.disabled = false;

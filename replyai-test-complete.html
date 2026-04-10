@@ -2317,14 +2317,6 @@ function forgotPassword(e) {
   showToast(`密碼重設信已寄送至 ${email}（Demo 模式，實際不會寄出）`, '📧');
 }
 
-// Auto-login if session exists
-(function checkAutoLogin() {
-  const session = getSession();
-  if (session && window.location.hash === '#dashboard') {
-    applySession(session);
-    navigate('dashboard');
-  }
-})();
 
 /* ============================================================
    NAVBAR
@@ -2515,7 +2507,7 @@ function initDashboard() {
     ];
     timeline.innerHTML = steps.map(s => `
       <div class="cookie-evt">
-        <div class="cookie-evt-dot ${s.active?'active'}">${s.icon}</div>
+        <div class="cookie-evt-dot ${s.active?'active':''}">${s.icon}</div>
         <div class="cookie-evt-content">
           <div class="cookie-evt-title">${s.title}</div>
           <div class="cookie-evt-detail">${s.detail}</div>
